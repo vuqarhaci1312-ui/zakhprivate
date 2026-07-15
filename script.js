@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const data = await loadContent();
-  renderPage(data, document.getElementById('app'));
+  await renderPage(data, document.getElementById('app'));
   initScrollAnimations();
+
+  const editMode = new URLSearchParams(location.search).get('edit') === '1';
+  if (editMode && isAuthenticated()) {
+    initEditMode(data);
+  } else if (editMode) {
+    location.href = 'admin/';
+  }
 });

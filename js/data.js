@@ -30,9 +30,3 @@ function exportContent(data) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
-function resolvePdfUrl(pdf) {
-  if (!pdf) return '#';
-  if (pdf.startsWith('idb://')) return pdf;
-  return pdf;
-}
