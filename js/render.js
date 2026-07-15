@@ -1,13 +1,13 @@
-async function renderInfoLine(line, path) {
+async function renderInfoLine(line) {
+  const wrap = document.createElement('div');
+  wrap.className = 'info-line-wrap';
+
+  let p;
   if (line.type === 'text') {
-    const p = document.createElement('p');
+    p = document.createElement('p');
     p.textContent = line.content;
-    p.dataset.edit = path;
-    return p;
-  }
-  if (line.type === 'rich') {
-    const p = document.createElement('p');
-    p.dataset.edit = path;
+  } else if (line.type === 'rich') {
+    p = document.createElement('p');
     p.dataset.rich = '1';
     for (const part of line.parts) {
       if (part.type === 'text') {
@@ -22,25 +22,31 @@ async function renderInfoLine(line, path) {
         p.appendChild(a);
       }
     }
-    return p;
   }
-  return null;
+  if (p) {
+    p.dataset.infoLine = '1';
+    wrap.appendChild(p);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'info-del-btn';
+    del.title = 'Sil';
+    del.textContent = '✕';
+    wrap.appendChild(del);
+  }
+  return wrap;
 }
 
-async function renderPackage(pkg, path) {
+async function renderPackage(pkg) {
   const li = document.createElement('li');
-  li.dataset.edit = path;
   const a = document.createElement('a');
   a.href = await resolvePdfUrl(pkg.pdf);
   a.target = '_blank';
   a.textContent = pkg.title;
   a.dataset.pdf = pkg.pdf;
-  a.dataset.field = 'title';
   a.className = 'pdf-link';
   const span = document.createElement('span');
   span.className = 'validity';
   span.textContent = pkg.validity;
-  span.dataset.field = 'validity';
   const actions = document.createElement('div');
   actions.className = 'pkg-edit-actions';
   actions.innerHTML = `
@@ -55,42 +61,49 @@ async function renderPackage(pkg, path) {
 
 async function renderCountry(country, idx) {
   const section = document.createElement('section');
-  section.className = 'country-section';
+  section.className = 'country-section visible';
   section.id = country.id;
   section.dataset.countryIdx = idx;
 
+  const bar = document.createElement('div');
+  bar.className = 'section-edit-bar';
+  bar.innerHTML = `
+    <button type="button" class="se-btn se-add-text">+ Mətn</button>
+    <button type="button" class="se-btn se-add-link">+ Link bloku</button>
+    <button type="button" class="se-btn se-add-pkg">+ Paket</button>
+    <button type="button" class="se-btn se-del-country">Ölkəni sil</button>
+  `;
+  section.appendChild(bar);
+
   const h2 = document.createElement('h2');
   h2.textContent = country.title;
-  h2.dataset.edit = `countries.${idx}.title`;
   section.appendChild(h2);
 
+  const infoBlock = document.createElement('div');
+  infoBlock.className = 'info-block';
   if (country.info?.length) {
-    const infoBlock = document.createElement('div');
-    infoBlock.className = 'info-block';
-    for (let i = 0; i < country.info.length; i++) {
-      const el = await renderInfoLine(country.info[i], `countries.${idx}.info.${i}`);
-      if (el) infoBlock.appendChild(el);
+    for (const line of country.info) {
+      infoBlock.appendChild(await renderInfoLine(line));
     }
-    section.appendChild(infoBlock);
   }
+  section.appendChild(infoBlock);
 
   const ul = document.createElement('ul');
   ul.className = 'packages';
-  ul.dataset.edit = `countries.${idx}.packages`;
-  for (let i = 0; i < country.packages.length; i++) {
-    ul.appendChild(await renderPackage(country.packages[i], `countries.${idx}.packages.${i}`));
+  for (const pkg of country.packages) {
+    ul.appendChild(await renderPackage(pkg));
   }
   section.appendChild(ul);
 
   const contact = document.createElement('p');
   contact.className = 'contact';
   const contactSpan = document.createElement('span');
+  contactSpan.className = 'contact-text';
   contactSpan.textContent = country.contact + ' ';
-  contactSpan.dataset.edit = `countries.${idx}.contact`;
   const emailLink = document.createElement('a');
   emailLink.href = 'mailto:' + country.email;
+  emailLink.className = 'contact-email';
   emailLink.textContent = country.email;
-  emailLink.dataset.edit = `countries.${idx}.email`;
   contact.appendChild(contactSpan);
   contact.appendChild(emailLink);
   section.appendChild(contact);
@@ -102,32 +115,44 @@ async function renderPage(data, container) {
   container.innerHTML = '';
 
   const hero = document.createElement('section');
-  hero.className = 'hero';
+  hero.className = 'hero visible';
+  hero.style.opacity = '1';
+  hero.style.transform = 'none';
   hero.innerHTML = `
-    <h1 data-edit="hero.title"></h1>
-    <p class="hero-sub" data-edit="hero.subtitle"></p>
-    <p class="hero-desc" data-edit="hero.desc1"></p>
-    <p class="hero-desc" data-edit="hero.desc2"></p>
+    <h1 class="ed-hero-title"></h1>
+    <p class="hero-sub ed-hero-sub"></p>
+    <p class="hero-desc ed-hero-desc1"></p>
+    <p class="hero-desc ed-hero-desc2"></p>
   `;
-  hero.querySelector('[data-edit="hero.title"]').textContent = data.hero.title;
-  hero.querySelector('[data-edit="hero.subtitle"]').textContent = data.hero.subtitle;
-  hero.querySelector('[data-edit="hero.desc1"]').textContent = data.hero.desc1;
-  hero.querySelector('[data-edit="hero.desc2"]').textContent = data.hero.desc2;
+  hero.querySelector('.ed-hero-title').textContent = data.hero.title;
+  hero.querySelector('.ed-hero-sub').textContent = data.hero.subtitle;
+  hero.querySelector('.ed-hero-desc1').textContent = data.hero.desc1;
+  hero.querySelector('.ed-hero-desc2').textContent = data.hero.desc2;
   container.appendChild(hero);
 
+  const countriesWrap = document.createElement('div');
+  countriesWrap.id = 'countries-wrap';
   for (let i = 0; i < data.countries.length; i++) {
-    container.appendChild(await renderCountry(data.countries[i], i));
+    countriesWrap.appendChild(await renderCountry(data.countries[i], i));
   }
+  container.appendChild(countriesWrap);
+
+  const addCountryBtn = document.createElement('button');
+  addCountryBtn.type = 'button';
+  addCountryBtn.id = 'add-country-btn';
+  addCountryBtn.className = 'add-country-btn';
+  addCountryBtn.textContent = '+ Yeni ölkə əlavə et';
+  container.appendChild(addCountryBtn);
 
   const credit = document.createElement('p');
-  credit.className = 'credit';
+  credit.className = 'credit ed-credit';
   credit.textContent = data.credit;
-  credit.dataset.edit = 'credit';
   container.appendChild(credit);
 }
 
 function initScrollAnimations() {
-  const sections = document.querySelectorAll('.country-section, .hero');
+  if (document.body.classList.contains('edit-mode')) return;
+  const sections = document.querySelectorAll('.country-section:not(.visible), .hero:not(.visible)');
   const observer = new IntersectionObserver(
     entries => {
       entries.forEach(entry => {
@@ -139,12 +164,5 @@ function initScrollAnimations() {
     },
     { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
   );
-  sections.forEach(section => {
-    if (section.classList.contains('hero')) {
-      section.style.opacity = '1';
-      section.style.transform = 'translateY(0)';
-    } else {
-      observer.observe(section);
-    }
-  });
+  sections.forEach(section => observer.observe(section));
 }

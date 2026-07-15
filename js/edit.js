@@ -1,26 +1,13 @@
 let editData = null;
+let activeLinkAnchor = null;
+let selectedRange = null;
 
 function uid() {
   return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-function setByPath(obj, path, value) {
-  const keys = path.split('.');
-  let cur = obj;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const k = keys[i];
-    const next = keys[i + 1];
-    if (!isNaN(next)) {
-      cur = cur[k];
-    } else {
-      cur = cur[k];
-    }
-  }
-  cur[keys[keys.length - 1]] = value;
-}
-
-function getByPath(obj, path) {
-  return path.split('.').reduce((o, k) => o?.[k], obj);
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || uid();
 }
 
 function parseRichParagraph(el) {
@@ -38,56 +25,89 @@ function parseRichParagraph(el) {
     }
   });
   if (!parts.some(p => p.type === 'link') && parts.length === 1 && parts[0].type === 'text') {
-    return { type: 'text', content: parts[0].value };
+    return { type: 'text', content: parts[0].value.trim() };
   }
   return { type: 'rich', parts };
 }
 
 function collectFromDOM() {
-  const data = JSON.parse(JSON.stringify(editData));
-
-  document.querySelectorAll('[data-edit]').forEach(el => {
-    const path = el.dataset.edit;
-    if (path.includes('.packages')) return;
-    if (path.includes('.info.') && el.dataset.rich) {
-      setByPath(data, path, parseRichParagraph(el));
-    } else if (path.includes('.info.')) {
-      setByPath(data, path, { type: 'text', content: el.textContent.trim() });
-    } else if (path.endsWith('.email') && el.tagName === 'A') {
-      setByPath(data, path, el.textContent.trim());
-    } else if (path !== 'credit' || el.classList.contains('credit')) {
-      if (!path.includes('.info.')) {
-        setByPath(data, path, el.textContent.trim());
-      }
-    }
-  });
+  const data = {
+    hero: {
+      title: document.querySelector('.ed-hero-title')?.textContent.trim() || '',
+      subtitle: document.querySelector('.ed-hero-sub')?.textContent.trim() || '',
+      desc1: document.querySelector('.ed-hero-desc1')?.textContent.trim() || '',
+      desc2: document.querySelector('.ed-hero-desc2')?.textContent.trim() || ''
+    },
+    credit: document.querySelector('.ed-credit')?.textContent.trim() || '',
+    countries: []
+  };
 
   document.querySelectorAll('.country-section').forEach(section => {
-    const idx = +section.dataset.countryIdx;
-    const packages = [];
+    const country = {
+      id: section.id || slugify(section.querySelector('h2')?.textContent || 'country'),
+      title: section.querySelector('h2')?.textContent.trim() || '',
+      info: [],
+      packages: [],
+      contact: section.querySelector('.contact-text')?.textContent.trim() || '',
+      email: section.querySelector('.contact-email')?.textContent.trim() || 'info@zakher.travel'
+    };
+
+    section.querySelectorAll('.info-line-wrap p').forEach(p => {
+      if (p.dataset.rich) country.info.push(parseRichParagraph(p));
+      else country.info.push({ type: 'text', content: p.textContent.trim() });
+    });
+
     section.querySelectorAll('.packages li').forEach((li, pi) => {
       const a = li.querySelector('a.pdf-link');
       const validity = li.querySelector('.validity');
-      const existing = editData.countries[idx]?.packages?.[pi];
-      packages.push({
-        id: existing?.id || uid(),
-        title: a.textContent.trim(),
-        pdf: a.dataset.pdf || a.getAttribute('href'),
-        validity: validity.textContent.trim()
+      const old = editData?.countries?.find(c => c.id === section.id);
+      const oldPkg = old?.packages?.[pi];
+      country.packages.push({
+        id: oldPkg?.id || uid(),
+        title: a?.textContent.trim() || '',
+        pdf: a?.dataset.pdf || a?.getAttribute('href') || '',
+        validity: validity?.textContent.trim() || ''
       });
     });
-    data.countries[idx].packages = packages;
+
+    data.countries.push(country);
   });
+
+  const count = data.countries.length;
+  if (data.hero.desc1.match(/\d+\s*countr/i)) {
+    data.hero.desc1 = data.hero.desc1.replace(/\d+/, count);
+  }
 
   return data;
 }
 
+async function saveAndRefresh(msg) {
+  editData = collectFromDOM();
+  saveContent(editData);
+  await renderPage(editData, document.getElementById('app'));
+  initEditModeUI();
+  if (msg) showToast(msg);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('edit-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'edit-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
 function createToolbar() {
+  if (document.getElementById('edit-toolbar')) return;
   const bar = document.createElement('div');
   bar.id = 'edit-toolbar';
   bar.innerHTML = `
     <span class="edit-badge">✎ Redaktə rejimi</span>
-    <span class="edit-hint">Mətnə kliklə · Söz seç → Link et · Paketdə PDF düyməsi</span>
+    <span class="edit-hint">Mətnə kliklə · Söz seç → Link et · Linkə kliklə → PDF dəyiş</span>
     <div class="edit-actions">
       <button type="button" id="btn-add-link" class="et-btn" disabled>Link et</button>
       <button type="button" id="btn-save" class="et-btn et-save">Yadda saxla</button>
@@ -96,62 +116,57 @@ function createToolbar() {
     </div>
   `;
   document.body.appendChild(bar);
-  return bar;
 }
 
-function createLinkModal() {
-  const m = document.createElement('div');
-  m.id = 'link-modal';
-  m.className = 'edit-modal';
-  m.innerHTML = `
-    <div class="edit-modal-box">
-      <h3>PDF Link yarat</h3>
-      <p class="modal-selected" id="modal-selected-text"></p>
-      <label>PDF yüklə</label>
-      <input type="file" id="modal-pdf-file" accept=".pdf">
-      <p class="modal-or">və ya mövcud yol:</p>
-      <input type="text" id="modal-pdf-path" placeholder="pdfs/fayl-adi.pdf">
-      <div class="modal-btns">
-        <button type="button" id="modal-cancel" class="et-btn">Ləğv</button>
-        <button type="button" id="modal-confirm" class="et-btn et-save">Link yarat</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-  return m;
-}
+function createModals() {
+  if (!document.getElementById('link-modal')) {
+    const linkM = document.createElement('div');
+    linkM.id = 'link-modal';
+    linkM.className = 'edit-modal';
+    linkM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>PDF Link yarat</h3>
+        <p class="modal-selected" id="modal-selected-text"></p>
+        <label>PDF yüklə</label>
+        <input type="file" id="modal-pdf-file" accept=".pdf">
+        <p class="modal-or">və ya mövcud yol:</p>
+        <input type="text" id="modal-pdf-path" placeholder="pdfs/fayl-adi.pdf">
+        <div class="modal-btns">
+          <button type="button" id="modal-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="modal-confirm" class="et-btn et-save">Link yarat</button>
+        </div>
+      </div>`;
+    document.body.appendChild(linkM);
+  }
 
-function createPdfModal() {
-  const m = document.createElement('div');
-  m.id = 'pdf-modal';
-  m.className = 'edit-modal';
-  m.innerHTML = `
-    <div class="edit-modal-box">
-      <h3>PDF dəyiş</h3>
-      <p id="pdf-modal-title"></p>
-      <label>Yeni PDF yüklə</label>
-      <input type="file" id="pdf-modal-file" accept=".pdf">
-      <p class="modal-or">və ya yol daxil et:</p>
-      <input type="text" id="pdf-modal-path" placeholder="pdfs/fayl-adi.pdf">
-      <div class="modal-btns">
-        <button type="button" id="pdf-modal-cancel" class="et-btn">Ləğv</button>
-        <button type="button" id="pdf-modal-confirm" class="et-btn et-save">Tətbiq et</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-  return m;
+  if (!document.getElementById('pdf-modal')) {
+    const pdfM = document.createElement('div');
+    pdfM.id = 'pdf-modal';
+    pdfM.className = 'edit-modal';
+    pdfM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>PDF dəyiş / yüklə</h3>
+        <p id="pdf-modal-title" class="modal-selected"></p>
+        <label>PDF yüklə</label>
+        <input type="file" id="pdf-modal-file" accept=".pdf">
+        <p class="modal-or">və ya yol:</p>
+        <input type="text" id="pdf-modal-path" placeholder="pdfs/fayl-adi.pdf">
+        <div class="modal-btns">
+          <button type="button" id="pdf-modal-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="pdf-modal-confirm" class="et-btn et-save">Tətbiq et</button>
+        </div>
+      </div>`;
+    document.body.appendChild(pdfM);
+  }
 }
-
-let selectedRange = null;
-let activeLinkAnchor = null;
 
 function getSelectionInEditable() {
   const sel = window.getSelection();
   if (!sel.rangeCount || sel.isCollapsed) return null;
   const range = sel.getRangeAt(0);
-  const container = range.commonAncestorContainer;
-  const el = container.nodeType === 3 ? container.parentElement : container;
+  const el = range.commonAncestorContainer.nodeType === 3
+    ? range.commonAncestorContainer.parentElement
+    : range.commonAncestorContainer;
   const editable = el.closest('[contenteditable="true"]');
   if (!editable) return null;
   return { range: range.cloneRange(), text: sel.toString(), editable };
@@ -159,7 +174,7 @@ function getSelectionInEditable() {
 
 async function applyLinkToSelection(pdfPath, file) {
   if (!selectedRange) return;
-  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.replace(/^.*\//, '');
+  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
   if (file) await storePdf(path, file);
   const url = await resolvePdfUrl(path);
   const a = document.createElement('a');
@@ -175,122 +190,156 @@ async function applyLinkToSelection(pdfPath, file) {
 }
 
 async function applyPdfToAnchor(anchor, pdfPath, file) {
-  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.replace(/^.*\//, '');
+  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
   if (file) await storePdf(path, file);
-  const url = await resolvePdfUrl(path);
-  anchor.href = url;
+  anchor.href = await resolvePdfUrl(path);
   anchor.dataset.pdf = path;
 }
 
+function openPdfModal(anchor) {
+  activeLinkAnchor = anchor;
+  document.getElementById('pdf-modal-title').textContent = anchor.textContent;
+  document.getElementById('pdf-modal-path').value = anchor.dataset.pdf || '';
+  document.getElementById('pdf-modal-file').value = '';
+  document.getElementById('pdf-modal').classList.add('show');
+}
+
 function enableEditables() {
-  document.querySelectorAll('[data-edit]').forEach(el => {
-    if (el.closest('.contact a[data-edit]') && el.tagName === 'A') {
+  const editables = [
+    '.ed-hero-title', '.ed-hero-sub', '.ed-hero-desc1', '.ed-hero-desc2',
+    '.ed-credit', '.country-section h2',
+    '.info-line-wrap p', '.contact-text', '.contact-email',
+    '.packages a.pdf-link', '.packages .validity'
+  ];
+  editables.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
       el.contentEditable = 'true';
-      el.addEventListener('click', e => e.preventDefault());
-      return;
-    }
-    if (el.tagName === 'A' && el.classList.contains('pdf-link')) return;
-    el.contentEditable = 'true';
-    el.spellcheck = false;
-  });
-
-  document.querySelectorAll('a.pdf-link').forEach(a => {
-    a.contentEditable = 'true';
-    a.addEventListener('click', e => {
-      if (document.body.classList.contains('edit-mode')) e.preventDefault();
+      el.spellcheck = false;
+      if (el.tagName === 'A') {
+        el.addEventListener('click', e => {
+          if (document.body.classList.contains('edit-mode')) {
+            e.preventDefault();
+            openPdfModal(el);
+          }
+        });
+      }
     });
-  });
-
-  document.querySelectorAll('.validity').forEach(s => {
-    s.contentEditable = 'true';
-    s.spellcheck = false;
   });
 }
 
-function bindPackageActions() {
+function createPackageLi(title, pdf, validity) {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <a href="#" class="pdf-link" data-pdf="${pdf}">${title}</a>
+    <span class="validity">${validity}</span>
+    <div class="pkg-edit-actions">
+      <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF dəyiş">PDF</button>
+      <button type="button" class="pkg-btn pkg-del-btn" title="Sil">✕</button>
+    </div>`;
+  return li;
+}
+
+function createInfoTextWrap(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'info-line-wrap';
+  wrap.innerHTML = `<p>${text}</p><button type="button" class="info-del-btn" title="Sil">✕</button>`;
+  return wrap;
+}
+
+function createInfoLinkWrap() {
+  const wrap = document.createElement('div');
+  wrap.className = 'info-line-wrap';
+  wrap.innerHTML = `
+    <p data-rich="1">Mətn buraya <a href="#" class="pdf-link" data-pdf="pdfs/yeni.pdf">link buraya</a>.</p>
+    <button type="button" class="info-del-btn" title="Sil">✕</button>`;
+  return wrap;
+}
+
+function bindAllActions() {
   document.querySelectorAll('.pkg-pdf-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const li = btn.closest('li');
-      activeLinkAnchor = li.querySelector('a.pdf-link');
-      document.getElementById('pdf-modal-title').textContent = activeLinkAnchor.textContent;
-      document.getElementById('pdf-modal-path').value = activeLinkAnchor.dataset.pdf || '';
-      document.getElementById('pdf-modal-file').value = '';
-      document.getElementById('pdf-modal').classList.add('show');
-    });
+    btn.onclick = () => openPdfModal(btn.closest('li').querySelector('a.pdf-link'));
   });
 
   document.querySelectorAll('.pkg-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!confirm('Bu paketi silmək istəyirsiniz?')) return;
-      btn.closest('li').remove();
-    });
+    btn.onclick = () => {
+      if (confirm('Paketi silmək istəyirsiniz?')) btn.closest('li').remove();
+    };
   });
-}
 
-function addPackageButtons() {
-  document.querySelectorAll('.country-section').forEach(section => {
-    const ul = section.querySelector('.packages');
-    if (!ul) return;
-    let addBtn = section.querySelector('.add-pkg-btn');
-    if (!addBtn) {
-      addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.className = 'add-pkg-btn';
-      addBtn.textContent = '+ Yeni paket əlavə et';
-      ul.after(addBtn);
-    }
-    addBtn.onclick = () => {
-      const idx = section.dataset.countryIdx;
-      const pkgCount = ul.querySelectorAll('li').length;
-      const path = `countries.${idx}.packages.${pkgCount}`;
-      const li = document.createElement('li');
-      li.dataset.edit = path;
-      li.innerHTML = `
-        <a href="#" class="pdf-link" data-pdf="pdfs/yeni-paket.pdf" data-field="title" contenteditable="true">Yeni paket</a>
-        <span class="validity" data-field="validity" contenteditable="true">01.01.2026-31.12.2026 Validity</span>
-        <div class="pkg-edit-actions">
-          <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF dəyiş">PDF</button>
-          <button type="button" class="pkg-btn pkg-del-btn" title="Sil">✕</button>
-        </div>
-      `;
+  document.querySelectorAll('.info-del-btn').forEach(btn => {
+    btn.onclick = () => {
+      if (confirm('Bu mətni silmək istəyirsiniz?')) btn.closest('.info-line-wrap').remove();
+    };
+  });
+
+  document.querySelectorAll('.se-add-text').forEach(btn => {
+    btn.onclick = () => {
+      const block = btn.closest('.country-section').querySelector('.info-block');
+      block.appendChild(createInfoTextWrap('Yeni mətn buraya yazın.'));
+      enableEditables();
+      bindAllActions();
+      block.lastElementChild.querySelector('p').focus();
+    };
+  });
+
+  document.querySelectorAll('.se-add-link').forEach(btn => {
+    btn.onclick = () => {
+      const block = btn.closest('.country-section').querySelector('.info-block');
+      block.appendChild(createInfoLinkWrap());
+      enableEditables();
+      bindAllActions();
+    };
+  });
+
+  document.querySelectorAll('.se-add-pkg').forEach(btn => {
+    btn.onclick = () => {
+      const ul = btn.closest('.country-section').querySelector('.packages');
+      const li = createPackageLi('Yeni paket', 'pdfs/yeni-paket.pdf', '01.01.2026-31.12.2026 Validity');
       ul.appendChild(li);
-      bindPackageActions();
+      enableEditables();
+      bindAllActions();
       li.querySelector('a').focus();
     };
   });
-}
 
-function showToast(msg) {
-  let t = document.getElementById('edit-toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'edit-toast';
-    document.body.appendChild(t);
+  document.querySelectorAll('.se-del-country').forEach(btn => {
+    btn.onclick = () => {
+      if (!confirm('Bu ölkəni tamamilə silmək istəyirsiniz?')) return;
+      btn.closest('.country-section').remove();
+    };
+  });
+
+  const addCountryBtn = document.getElementById('add-country-btn');
+  if (addCountryBtn) {
+    addCountryBtn.onclick = async () => {
+      editData = collectFromDOM();
+      editData.countries.push({
+        id: 'country_' + uid(),
+        title: 'YENİ ÖLKƏ :',
+        info: [],
+        packages: [],
+        contact: 'for more information please contact email:',
+        email: 'info@zakher.travel'
+      });
+      await renderPage(editData, document.getElementById('app'));
+      initEditModeUI();
+      document.querySelectorAll('.country-section')[document.querySelectorAll('.country-section').length - 1]?.scrollIntoView({ behavior: 'smooth' });
+      showToast('Yeni ölkə əlavə edildi');
+    };
   }
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function initEditMode(data) {
-  editData = data;
-  document.body.classList.add('edit-mode');
-  createToolbar();
-  createLinkModal();
-  createPdfModal();
-  enableEditables();
-  bindPackageActions();
-  addPackageButtons();
-
+function bindToolbar() {
   const btnLink = document.getElementById('btn-add-link');
+  if (!btnLink) return;
 
-  document.addEventListener('selectionchange', () => {
+  document.onselectionchange = () => {
     const sel = getSelectionInEditable();
     selectedRange = sel;
     btnLink.disabled = !sel || sel.text.length < 1;
-  });
+  };
 
-  btnLink.addEventListener('click', () => {
+  btnLink.onclick = () => {
     const sel = getSelectionInEditable();
     if (!sel) return;
     selectedRange = sel;
@@ -298,27 +347,27 @@ function initEditMode(data) {
     document.getElementById('modal-pdf-file').value = '';
     document.getElementById('modal-pdf-path').value = '';
     document.getElementById('link-modal').classList.add('show');
-  });
+  };
 
-  document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal-cancel').onclick = () =>
     document.getElementById('link-modal').classList.remove('show');
-  });
 
-  document.getElementById('modal-confirm').addEventListener('click', async () => {
+  document.getElementById('modal-confirm').onclick = async () => {
     const file = document.getElementById('modal-pdf-file').files[0];
     let path = document.getElementById('modal-pdf-path').value.trim();
     if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
-    if (!path) { showToast('PDF seçin və ya yol daxil edin'); return; }
+    if (!path) { showToast('PDF seçin'); return; }
     await applyLinkToSelection(path, file);
     document.getElementById('link-modal').classList.remove('show');
+    enableEditables();
+    bindAllActions();
     showToast('Link yaradıldı');
-  });
+  };
 
-  document.getElementById('pdf-modal-cancel').addEventListener('click', () => {
+  document.getElementById('pdf-modal-cancel').onclick = () =>
     document.getElementById('pdf-modal').classList.remove('show');
-  });
 
-  document.getElementById('pdf-modal-confirm').addEventListener('click', async () => {
+  document.getElementById('pdf-modal-confirm').onclick = async () => {
     const file = document.getElementById('pdf-modal-file').files[0];
     let path = document.getElementById('pdf-modal-path').value.trim();
     if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
@@ -326,36 +375,44 @@ function initEditMode(data) {
     await applyPdfToAnchor(activeLinkAnchor, path, file);
     document.getElementById('pdf-modal').classList.remove('show');
     showToast('PDF yeniləndi');
-  });
+  };
 
   document.querySelectorAll('.edit-modal').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+    m.onclick = e => { if (e.target === m) m.classList.remove('show'); };
   });
 
-  document.getElementById('btn-save').addEventListener('click', () => {
-    editData = collectFromDOM();
-    saveContent(editData);
-    showToast('Yadda saxlanıldı');
-  });
+  document.getElementById('btn-save').onclick = () => saveAndRefresh('Yadda saxlanıldı');
 
-  document.getElementById('btn-export').addEventListener('click', () => {
+  document.getElementById('btn-export').onclick = () => {
     editData = collectFromDOM();
     saveContent(editData);
     exportContent(editData);
     showToast('content.json yükləndi');
-  });
+  };
 
-  document.getElementById('btn-exit').addEventListener('click', () => {
+  document.getElementById('btn-exit').onclick = () => {
     destroySession();
     location.href = location.pathname;
-  });
+  };
+}
+
+function initEditModeUI() {
+  enableEditables();
+  bindAllActions();
+}
+
+function initEditMode(data) {
+  editData = data;
+  document.body.classList.add('edit-mode');
+  createToolbar();
+  createModals();
+  initEditModeUI();
+  bindToolbar();
 
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      editData = collectFromDOM();
-      saveContent(editData);
-      showToast('Yadda saxlanıldı');
+      saveAndRefresh('Yadda saxlanıldı');
     }
   });
 }
