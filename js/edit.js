@@ -93,10 +93,14 @@ function collectFromDOM() {
 
 async function saveAndRefresh(msg) {
   editData = collectFromDOM();
-  saveContent(editData);
-  await renderPage(editData, document.getElementById('app'));
-  initEditModeUI();
-  if (msg) showToast(msg);
+  try {
+    const result = await saveContent(editData);
+    await renderPage(editData, document.getElementById('app'));
+    initEditModeUI();
+    showToast(result.remote ? (msg || 'Hamı üçün yadda saxlanıldı') : 'Yalnız bu brauzerdə saxlanıldı (server konfiqurasiya lazımdır)');
+  } catch (e) {
+    showToast('Xəta: ' + e.message);
+  }
 }
 
 function showToast(msg) {
@@ -553,15 +557,18 @@ function bindToolbar() {
 
   document.getElementById('btn-save').onclick = () => saveAndRefresh('Yadda saxlanıldı');
 
-  document.getElementById('btn-export').onclick = () => {
+  document.getElementById('btn-export').onclick = async () => {
     editData = collectFromDOM();
-    saveContent(editData);
+    try {
+      await saveContent(editData);
+    } catch {}
     exportContent(editData);
     showToast('content.json yükləndi');
   };
 
   document.getElementById('btn-exit').onclick = () => {
     destroySession();
+    clearSaveToken();
     location.href = location.pathname;
   };
 }
@@ -579,10 +586,10 @@ function initEditMode(data) {
   initEditModeUI();
   bindToolbar();
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', async e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      saveAndRefresh('Yadda saxlanıldı');
+      await saveAndRefresh('Yadda saxlanıldı');
     }
   });
 }
