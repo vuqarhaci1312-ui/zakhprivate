@@ -58,8 +58,11 @@ export default async function handler(req, res) {
   });
 
   if (!ghRes.ok) {
-    const err = await ghRes.text();
-    return res.status(500).json({ error: 'GitHub save failed', detail: err });
+    const err = await ghRes.json().catch(() => ({}));
+    const msg = err.message || 'GitHub save failed';
+    if (ghRes.status === 401) return res.status(500).json({ error: 'GitHub token etibarsızdır. Yeni token yaradıb Vercel-ə əlavə edin.' });
+    if (ghRes.status === 403) return res.status(500).json({ error: 'GitHub tokenin yazma icazəsi yoxdur (repo scope lazımdır).' });
+    return res.status(500).json({ error: 'GitHub save failed: ' + msg });
   }
 
   return res.status(200).json({ ok: true });

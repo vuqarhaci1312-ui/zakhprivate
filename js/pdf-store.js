@@ -1,5 +1,6 @@
 const PDF_DB_NAME = 'zakher_pdfs';
 const PDF_STORE = 'files';
+const GH_RAW = 'https://raw.githubusercontent.com/vuqarhaci1312-ui/zakhprivate/main/';
 
 function openPdfDb() {
   return new Promise((resolve, reject) => {
@@ -39,5 +40,5 @@ async function resolvePdfUrl(pdf) {
     if (!blobCache[pdf]) blobCache[pdf] = URL.createObjectURL(blob);
     return blobCache[pdf];
   }
-  return pdf;
+  return GH_RAW + pdf.split('/').map(encodeURIComponent).join('/');
 }

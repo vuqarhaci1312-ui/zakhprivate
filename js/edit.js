@@ -97,7 +97,7 @@ async function saveAndRefresh(msg) {
     const result = await saveContent(editData);
     await renderPage(editData, document.getElementById('app'));
     initEditModeUI();
-    showToast(result.remote ? (msg || 'Hamı üçün yadda saxlanıldı') : 'Yalnız bu brauzerdə saxlanıldı (server konfiqurasiya lazımdır)');
+    showToast(msg || 'Hamı üçün yadda saxlanıldı');
   } catch (e) {
     showToast('Xəta: ' + e.message);
   }
@@ -227,7 +227,10 @@ function getSelectionInEditable() {
 async function applyLinkToSelection(pdfPath, file) {
   if (!selectedRange) return;
   const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
-  if (file) await storePdf(path, file);
+  if (file) {
+    await uploadPdf(path, file);
+    await storePdf(path, file);
+  }
   const url = await resolvePdfUrl(path);
   const a = document.createElement('a');
   a.href = url;
@@ -243,7 +246,10 @@ async function applyLinkToSelection(pdfPath, file) {
 
 async function applyPdfToAnchor(anchor, pdfPath, file) {
   const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
-  if (file) await storePdf(path, file);
+  if (file) {
+    await uploadPdf(path, file);
+    await storePdf(path, file);
+  }
   anchor.href = await resolvePdfUrl(path);
   anchor.dataset.pdf = path;
 }
@@ -487,11 +493,15 @@ function bindToolbar() {
     let path = document.getElementById('modal-pdf-path').value.trim();
     if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
     if (!path) { showToast('PDF seçin'); return; }
-    await applyLinkToSelection(path, file);
-    document.getElementById('link-modal').classList.remove('show');
-    enableEditables();
-    bindAllActions();
-    showToast('Link yaradıldı');
+    try {
+      await applyLinkToSelection(path, file);
+      document.getElementById('link-modal').classList.remove('show');
+      enableEditables();
+      bindAllActions();
+      showToast(file ? 'PDF yükləndi və link yaradıldı' : 'Link yaradıldı');
+    } catch (e) {
+      showToast('Xəta: ' + e.message);
+    }
   };
 
   document.getElementById('pdf-modal-cancel').onclick = () =>
@@ -502,9 +512,13 @@ function bindToolbar() {
     let path = document.getElementById('pdf-modal-path').value.trim();
     if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
     if (!path || !activeLinkAnchor) { showToast('PDF seçin'); return; }
-    await applyPdfToAnchor(activeLinkAnchor, path, file);
-    document.getElementById('pdf-modal').classList.remove('show');
-    showToast('PDF yeniləndi');
+    try {
+      await applyPdfToAnchor(activeLinkAnchor, path, file);
+      document.getElementById('pdf-modal').classList.remove('show');
+      showToast(file ? 'PDF serverə yükləndi' : 'PDF yeniləndi');
+    } catch (e) {
+      showToast('Xəta: ' + e.message);
+    }
   };
 
   const phoneNumInput = document.getElementById('phone-modal-number');

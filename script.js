@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initScrollAnimations();
 
   const editMode = new URLSearchParams(location.search).get('edit') === '1';
-  if (editMode && isAuthenticated()) {
+  if (editMode && isAuthenticated() && hasSaveToken()) {
     initEditMode(data);
   } else if (editMode) {
     location.href = 'admin/';
