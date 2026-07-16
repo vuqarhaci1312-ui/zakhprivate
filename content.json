@@ -108,7 +108,14 @@
       "id": "poland",
       "title": "POLAND:",
       "info": [],
-      "packages": [],
+      "packages": [
+        {
+          "id": "id_mrnnt0w97h3s",
+          "title": "Krakow - Zakopane  - Krakow",
+          "pdf": "pdfs/POLAND_PACKAGES__1_.pdf",
+          "validity": "01.07.2026-31.08.2026 Validity"
+        }
+      ],
       "contactPrefix": "for more information please contact",
       "phones": [
         {
