@@ -134,7 +134,7 @@ function createToolbar() {
   bar.id = 'edit-toolbar';
   bar.innerHTML = `
     <span class="edit-badge">✎ Redaktə rejimi</span>
-    <span class="edit-hint">Mətnə kliklə · + PDF ilə yeni paket əlavə et</span>
+    <span class="edit-hint">Paket adına kliklə → redaktə · PDF düyməsi ilə fayl dəyiş</span>
     <div class="edit-actions">
       <button type="button" id="btn-add-pdf" class="et-btn et-save">+ PDF paket</button>
       <button type="button" id="btn-add-link" class="et-btn" disabled>Link et</button>
@@ -366,8 +366,19 @@ function enableEditables() {
     });
   });
 
-  document.querySelectorAll('a.pdf-link').forEach(a => {
+  document.querySelectorAll('.packages a.pdf-link').forEach(a => {
     a.onclick = e => {
+      if (!document.body.classList.contains('edit-mode')) return;
+      e.preventDefault();
+    };
+  });
+
+  document.querySelectorAll('.info-line-wrap a.pdf-link').forEach(a => {
+    a.onclick = e => {
+      if (!document.body.classList.contains('edit-mode')) return;
+      e.preventDefault();
+    };
+    a.ondblclick = e => {
       if (!document.body.classList.contains('edit-mode')) return;
       e.preventDefault();
       openPdfModal(a);
