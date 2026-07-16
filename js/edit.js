@@ -1,5 +1,7 @@
 let editData = null;
 let activeLinkAnchor = null;
+let activePhoneAnchor = null;
+let activeEmailAnchor = null;
 let selectedRange = null;
 
 function uid() {
@@ -48,9 +50,17 @@ function collectFromDOM() {
       title: section.querySelector('h2')?.textContent.trim() || '',
       info: [],
       packages: [],
-      contact: section.querySelector('.contact-text')?.textContent.trim() || '',
+      contactPrefix: section.querySelector('.contact-prefix')?.textContent.trim() || 'for more information please contact ',
+      phones: [],
       email: section.querySelector('.contact-email')?.textContent.trim() || 'info@zakher.travel'
     };
+
+    section.querySelectorAll('.phone-link').forEach(a => {
+      country.phones.push({
+        number: a.textContent.trim(),
+        whatsapp: a.dataset.whatsapp || digitsOnly(a.textContent)
+      });
+    });
 
     section.querySelectorAll('.info-line-wrap p').forEach(p => {
       if (p.dataset.rich) country.info.push(parseRichParagraph(p));
@@ -107,7 +117,7 @@ function createToolbar() {
   bar.id = 'edit-toolbar';
   bar.innerHTML = `
     <span class="edit-badge">✎ Redaktə rejimi</span>
-    <span class="edit-hint">Mətnə kliklə · Söz seç → Link et · Linkə kliklə → PDF dəyiş</span>
+    <span class="edit-hint">Mətnə kliklə · Telefon/Emailə kliklə → redaktə · Söz seç → Link et</span>
     <div class="edit-actions">
       <button type="button" id="btn-add-link" class="et-btn" disabled>Link et</button>
       <button type="button" id="btn-save" class="et-btn et-save">Yadda saxla</button>
@@ -158,6 +168,44 @@ function createModals() {
       </div>`;
     document.body.appendChild(pdfM);
   }
+
+  if (!document.getElementById('phone-modal')) {
+    const phoneM = document.createElement('div');
+    phoneM.id = 'phone-modal';
+    phoneM.className = 'edit-modal';
+    phoneM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>Telefon / WhatsApp</h3>
+        <label>Telefon nömrəsi (görünən)</label>
+        <input type="text" id="phone-modal-number" placeholder="+994 70 449 72 00">
+        <label>WhatsApp linki</label>
+        <input type="text" id="phone-modal-wa" placeholder="https://wa.me/994704497200">
+        <p class="modal-hint">Nömrə yazanda WhatsApp linki avtomatik yaranır. İstəsən dəyişə bilərsən.</p>
+        <div class="modal-btns">
+          <button type="button" id="phone-modal-delete" class="et-btn et-exit">Sil</button>
+          <button type="button" id="phone-modal-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="phone-modal-confirm" class="et-btn et-save">Yadda saxla</button>
+        </div>
+      </div>`;
+    document.body.appendChild(phoneM);
+  }
+
+  if (!document.getElementById('email-modal')) {
+    const emailM = document.createElement('div');
+    emailM.id = 'email-modal';
+    emailM.className = 'edit-modal';
+    emailM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>Email redaktə</h3>
+        <label>Email ünvanı</label>
+        <input type="email" id="email-modal-input" placeholder="info@zakher.travel">
+        <div class="modal-btns">
+          <button type="button" id="email-modal-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="email-modal-confirm" class="et-btn et-save">Yadda saxla</button>
+        </div>
+      </div>`;
+    document.body.appendChild(emailM);
+  }
 }
 
 function getSelectionInEditable() {
@@ -196,6 +244,19 @@ async function applyPdfToAnchor(anchor, pdfPath, file) {
   anchor.dataset.pdf = path;
 }
 
+function openPhoneModal(anchor) {
+  activePhoneAnchor = anchor;
+  document.getElementById('phone-modal-number').value = anchor.textContent.trim();
+  document.getElementById('phone-modal-wa').value = anchor.href || waUrl(anchor.dataset.whatsapp);
+  document.getElementById('phone-modal').classList.add('show');
+}
+
+function openEmailModal(anchor) {
+  activeEmailAnchor = anchor;
+  document.getElementById('email-modal-input').value = anchor.textContent.trim();
+  document.getElementById('email-modal').classList.add('show');
+}
+
 function openPdfModal(anchor) {
   activeLinkAnchor = anchor;
   document.getElementById('pdf-modal-title').textContent = anchor.textContent;
@@ -208,23 +269,59 @@ function enableEditables() {
   const editables = [
     '.ed-hero-title', '.ed-hero-sub', '.ed-hero-desc1', '.ed-hero-desc2',
     '.ed-credit', '.country-section h2',
-    '.info-line-wrap p', '.contact-text', '.contact-email',
+    '.info-line-wrap p', '.contact-prefix',
     '.packages a.pdf-link', '.packages .validity'
   ];
   editables.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
       el.contentEditable = 'true';
       el.spellcheck = false;
-      if (el.tagName === 'A') {
-        el.addEventListener('click', e => {
-          if (document.body.classList.contains('edit-mode')) {
-            e.preventDefault();
-            openPdfModal(el);
-          }
-        });
-      }
     });
   });
+
+  document.querySelectorAll('a.pdf-link').forEach(a => {
+    a.onclick = e => {
+      if (!document.body.classList.contains('edit-mode')) return;
+      e.preventDefault();
+      openPdfModal(a);
+    };
+  });
+
+  document.querySelectorAll('a.phone-link').forEach(a => {
+    a.onclick = e => {
+      if (!document.body.classList.contains('edit-mode')) return;
+      e.preventDefault();
+      openPhoneModal(a);
+    };
+  });
+
+  document.querySelectorAll('a.contact-email').forEach(a => {
+    a.onclick = e => {
+      if (!document.body.classList.contains('edit-mode')) return;
+      e.preventDefault();
+      openEmailModal(a);
+    };
+  });
+}
+
+function createPhoneLink(number, whatsapp) {
+  const wrap = document.createElement('span');
+  wrap.className = 'phone-wrap';
+  const a = document.createElement('a');
+  a.href = waUrl(whatsapp || digitsOnly(number));
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.className = 'phone-link';
+  a.textContent = number;
+  a.dataset.whatsapp = whatsapp || digitsOnly(number);
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'phone-del-btn';
+  del.title = 'Telefonu sil';
+  del.textContent = '✕';
+  wrap.appendChild(a);
+  wrap.appendChild(del);
+  return wrap;
 }
 
 function createPackageLi(title, pdf, validity) {
@@ -256,6 +353,34 @@ function createInfoLinkWrap() {
 }
 
 function bindAllActions() {
+  document.querySelectorAll('.phone-del-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if (!confirm('Bu telefonu silmək istəyirsiniz?')) return;
+      const wrap = btn.closest('.phone-wrap');
+      const or = wrap.previousElementSibling;
+      if (or?.classList.contains('contact-or')) or.remove();
+      wrap.remove();
+    };
+  });
+
+  document.querySelectorAll('.se-add-phone').forEach(btn => {
+    btn.onclick = () => {
+      const phonesWrap = btn.closest('.country-section').querySelector('.phones-wrap');
+      if (phonesWrap.querySelectorAll('.phone-wrap').length > 0) {
+        const or = document.createElement('span');
+        or.className = 'contact-or';
+        or.textContent = ' or ';
+        phonesWrap.appendChild(or);
+      }
+      const phoneWrap = createPhoneLink('+000 00 000 00 00', '00000000000');
+      phonesWrap.appendChild(phoneWrap);
+      enableEditables();
+      bindAllActions();
+      openPhoneModal(phoneWrap.querySelector('.phone-link'));
+    };
+  });
+
   document.querySelectorAll('.pkg-pdf-btn').forEach(btn => {
     btn.onclick = () => openPdfModal(btn.closest('li').querySelector('a.pdf-link'));
   });
@@ -318,7 +443,8 @@ function bindAllActions() {
         title: 'YENİ ÖLKƏ :',
         info: [],
         packages: [],
-        contact: 'for more information please contact email:',
+        contactPrefix: 'for more information please contact ',
+        phones: [],
         email: 'info@zakher.travel'
       });
       await renderPage(editData, document.getElementById('app'));
@@ -375,6 +501,50 @@ function bindToolbar() {
     await applyPdfToAnchor(activeLinkAnchor, path, file);
     document.getElementById('pdf-modal').classList.remove('show');
     showToast('PDF yeniləndi');
+  };
+
+  const phoneNumInput = document.getElementById('phone-modal-number');
+  const phoneWaInput = document.getElementById('phone-modal-wa');
+  phoneNumInput.oninput = () => {
+    phoneWaInput.value = waUrl(digitsOnly(phoneNumInput.value));
+  };
+
+  document.getElementById('phone-modal-cancel').onclick = () =>
+    document.getElementById('phone-modal').classList.remove('show');
+
+  document.getElementById('phone-modal-confirm').onclick = () => {
+    if (!activePhoneAnchor) return;
+    const number = phoneNumInput.value.trim();
+    const wa = phoneWaInput.value.trim() || waUrl(digitsOnly(number));
+    if (!number) { showToast('Nömrə daxil edin'); return; }
+    activePhoneAnchor.textContent = number;
+    activePhoneAnchor.href = wa;
+    activePhoneAnchor.dataset.whatsapp = digitsOnly(wa) || digitsOnly(number);
+    document.getElementById('phone-modal').classList.remove('show');
+    showToast('Telefon yeniləndi');
+  };
+
+  document.getElementById('phone-modal-delete').onclick = () => {
+    if (!activePhoneAnchor) return;
+    const wrap = activePhoneAnchor.closest('.phone-wrap');
+    const or = wrap?.previousElementSibling;
+    if (or?.classList.contains('contact-or')) or.remove();
+    wrap?.remove();
+    document.getElementById('phone-modal').classList.remove('show');
+    showToast('Telefon silindi');
+  };
+
+  document.getElementById('email-modal-cancel').onclick = () =>
+    document.getElementById('email-modal').classList.remove('show');
+
+  document.getElementById('email-modal-confirm').onclick = () => {
+    if (!activeEmailAnchor) return;
+    const email = document.getElementById('email-modal-input').value.trim();
+    if (!email) { showToast('Email daxil edin'); return; }
+    activeEmailAnchor.textContent = email;
+    activeEmailAnchor.href = 'mailto:' + email;
+    document.getElementById('email-modal').classList.remove('show');
+    showToast('Email yeniləndi');
   };
 
   document.querySelectorAll('.edit-modal').forEach(m => {

@@ -70,6 +70,7 @@ async function renderCountry(country, idx) {
   bar.innerHTML = `
     <button type="button" class="se-btn se-add-text">+ Mətn</button>
     <button type="button" class="se-btn se-add-link">+ Link bloku</button>
+    <button type="button" class="se-btn se-add-phone">+ Telefon</button>
     <button type="button" class="se-btn se-add-pkg">+ Paket</button>
     <button type="button" class="se-btn se-del-country">Ölkəni sil</button>
   `;
@@ -95,17 +96,7 @@ async function renderCountry(country, idx) {
   }
   section.appendChild(ul);
 
-  const contact = document.createElement('p');
-  contact.className = 'contact';
-  const contactSpan = document.createElement('span');
-  contactSpan.className = 'contact-text';
-  contactSpan.textContent = country.contact + ' ';
-  const emailLink = document.createElement('a');
-  emailLink.href = 'mailto:' + country.email;
-  emailLink.className = 'contact-email';
-  emailLink.textContent = country.email;
-  contact.appendChild(contactSpan);
-  contact.appendChild(emailLink);
+  const contact = renderContact(country);
   section.appendChild(contact);
 
   return section;
