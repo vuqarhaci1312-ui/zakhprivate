@@ -11,23 +11,64 @@
       "id": "azerbaijan",
       "title": "AZERBAIJAN :",
       "info": [
-        { "type": "text", "content": "GCC citizens can travel visa-free." },
-        { "type": "text", "content": "GCC residents can obtain a visa on arrival for 30 USD." },
+        {
+          "type": "text",
+          "content": "GCC citizens can travel visa-free."
+        },
+        {
+          "type": "text",
+          "content": "GCC residents can obtain a visa on arrival for 30 USD.test"
+        },
         {
           "type": "rich",
           "parts": [
-            { "type": "text", "value": "For more information, please " },
-            { "type": "link", "text": "click here", "href": "pdfs/Updated-Visa-Entry-Rules-–-Azerbaijan-2026.pdf" },
-            { "type": "text", "value": "." }
+            {
+              "type": "text",
+              "value": "For more information, please "
+            },
+            {
+              "type": "link",
+              "text": "click here",
+              "href": "pdfs/Updated-Visa-Entry-Rules-–-Azerbaijan-2026.pdf"
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
           ]
         }
       ],
       "packages": [
-        { "id": "az1", "title": "Sample packages with budget hotels", "pdf": "pdfs/Budget-packages-for-Azerbaijan.pdf", "validity": "01.06.2026-30.08.2026 Validity" },
-        { "id": "az2", "title": "Baku Guba Sample Package", "pdf": "pdfs/baku-guba.pdf", "validity": "01.07.2026-30.07.2026 Validity" },
-        { "id": "az3", "title": "SMPL packages for Azerbaijan (June, July, August)", "pdf": "pdfs/Summer-Package-for-Azerbaijan.pdf", "validity": "01.06.2026-30.08.2026 Validity" }
+        {
+          "id": "az1",
+          "title": "Sample packages with budget hotels",
+          "pdf": "pdfs/Budget-packages-for-Azerbaijan.pdf",
+          "validity": "01.06.2026-30.08.2026 Validity"
+        },
+        {
+          "id": "az2",
+          "title": "Baku Guba Sample Package",
+          "pdf": "pdfs/baku-guba.pdf",
+          "validity": "01.07.2026-30.07.2026 Validity"
+        },
+        {
+          "id": "az3",
+          "title": "SMPL packages for Azerbaijan (June, July, August)",
+          "pdf": "pdfs/Summer-Package-for-Azerbaijan.pdf",
+          "validity": "01.06.2026-30.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +994 70 449 72 00 or +994 50 253 22 04 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+994 70 449 72 00",
+          "whatsapp": "994704497200"
+        },
+        {
+          "number": "+994 50 253 22 04",
+          "whatsapp": "994502532204"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -35,11 +76,32 @@
       "title": "TURKIYE :",
       "info": [],
       "packages": [
-        { "id": "tr1", "title": "SUMMER SAMPLE 2026 – ISTANBUL", "pdf": "pdfs/SUMMER-SAMPLE-2026.pdf", "validity": "01.06.2025-30.08.2026 Validity" },
-        { "id": "tr2", "title": "SUMMER SAMPLE 2026 – TRABZON", "pdf": "pdfs/SUMMER-SAMPLE-2026-1.pdf", "validity": "01.06.2025-30.08.2026 Validity" },
-        { "id": "tr3", "title": "SUMMER SAMPLE 2026 Northern Turkiye", "pdf": "pdfs/sample-package-for-summer-1.pdf", "validity": "01.06.2025-30.08.2026 Validity" }
+        {
+          "id": "tr1",
+          "title": "SUMMER SAMPLE 2026 – ISTANBUL",
+          "pdf": "pdfs/SUMMER-SAMPLE-2026.pdf",
+          "validity": "01.06.2025-30.08.2026 Validity"
+        },
+        {
+          "id": "tr2",
+          "title": "SUMMER SAMPLE 2026 – TRABZON",
+          "pdf": "pdfs/SUMMER-SAMPLE-2026-1.pdf",
+          "validity": "01.06.2025-30.08.2026 Validity"
+        },
+        {
+          "id": "tr3",
+          "title": "SUMMER SAMPLE 2026 Northern Turkiye",
+          "pdf": "pdfs/sample-package-for-summer-1.pdf",
+          "validity": "01.06.2025-30.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +90 544 690 34 07 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+90 544 690 34 07",
+          "whatsapp": "905446903407"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -47,7 +109,13 @@
       "title": "POLAND:",
       "info": [],
       "packages": [],
-      "contact": "for more information please contact +48 662 603 381 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+48 662 603 381",
+          "whatsapp": "48662603381"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -55,14 +123,50 @@
       "title": "GEORGIA :",
       "info": [],
       "packages": [
-        { "id": "ge1", "title": "Summer + Eid Al Adha (SAMPLE) 2026", "pdf": "pdfs/Summer-Eid-Al-Adha-SAMPLE-2026.pdf", "validity": "01.06.2025-30.08.2026 Validity" },
-        { "id": "ge2", "title": "Summer at RADISSON BLU Tbilisi", "pdf": "pdfs/Summer-at-RADISSON-BLU-Tbilisi-1.pdf", "validity": "01.07.2025-30.10.2026 Validity" },
-        { "id": "ge3", "title": "Horse Riding trip", "pdf": "pdfs/Horse-Riding-trip.pdf", "validity": "01.07.2025-30.11.2026 Validity" },
-        { "id": "ge4", "title": "Tsinandali – Tbilisi", "pdf": "pdfs/Tsinandali-Tbilisi-.pdf", "validity": "01.07.2025-15.10.2026 Validity" },
-        { "id": "ge5", "title": "Summer Season 5 Days", "pdf": "pdfs/Summer-Season-5-Days.pdf", "validity": "01.07.2025-15.09.2026 Validity" },
-        { "id": "ge6", "title": "August 2026 – Batumi Tbilisi", "pdf": "pdfs/August-2026-Batumi-Tbilisi.pdf", "validity": "01.08.2025-31.08.2026 Validity" }
+        {
+          "id": "ge1",
+          "title": "Summer + Eid Al Adha (SAMPLE) 2026",
+          "pdf": "pdfs/Summer-Eid-Al-Adha-SAMPLE-2026.pdf",
+          "validity": "01.06.2025-30.08.2026 Validity"
+        },
+        {
+          "id": "ge2",
+          "title": "Summer at RADISSON BLU Tbilisi",
+          "pdf": "pdfs/Summer-at-RADISSON-BLU-Tbilisi-1.pdf",
+          "validity": "01.07.2025-30.10.2026 Validity"
+        },
+        {
+          "id": "ge3",
+          "title": "Horse Riding trip",
+          "pdf": "pdfs/Horse-Riding-trip.pdf",
+          "validity": "01.07.2025-30.11.2026 Validity"
+        },
+        {
+          "id": "ge4",
+          "title": "Tsinandali – Tbilisi",
+          "pdf": "pdfs/Tsinandali-Tbilisi-.pdf",
+          "validity": "01.07.2025-15.10.2026 Validity"
+        },
+        {
+          "id": "ge5",
+          "title": "Summer Season 5 Days",
+          "pdf": "pdfs/Summer-Season-5-Days.pdf",
+          "validity": "01.07.2025-15.09.2026 Validity"
+        },
+        {
+          "id": "ge6",
+          "title": "August 2026 – Batumi Tbilisi",
+          "pdf": "pdfs/August-2026-Batumi-Tbilisi.pdf",
+          "validity": "01.08.2025-31.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +995 591 80 06 84 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+995 591 80 06 84",
+          "whatsapp": "995591800684"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -70,10 +174,26 @@
       "title": "RUSSIA",
       "info": [],
       "packages": [
-        { "id": "ru1", "title": "Jul Package", "pdf": "pdfs/July.pdf", "validity": "1.07.2026-30.07.2026 Validity" },
-        { "id": "ru2", "title": "Summer Package", "pdf": "pdfs/June.pdf", "validity": "1.07.2026-30.07.2026 Validity" }
+        {
+          "id": "ru1",
+          "title": "Jul Package",
+          "pdf": "pdfs/July.pdf",
+          "validity": "1.07.2026-30.07.2026 Validity"
+        },
+        {
+          "id": "ru2",
+          "title": "Summer Package",
+          "pdf": "pdfs/June.pdf",
+          "validity": "1.07.2026-30.07.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +7 999 904 45 15 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+7 999 904 45 15",
+          "whatsapp": "79999044515"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -81,11 +201,32 @@
       "title": "UZBEKISTAN :",
       "info": [],
       "packages": [
-        { "id": "uz1", "title": "Jul-Aug 3 N Package", "pdf": "pdfs/Sample-for-julyAugust-3N-4D.-Uz.pdf", "validity": "1.07.2026-30.08.2026 Validity" },
-        { "id": "uz2", "title": "Jul-Aug 4 N Package", "pdf": "pdfs/Sample-for-JulyAugust-4N-5D.Uz-1.pdf", "validity": "1.07.2026-30.08.2026 Validity" },
-        { "id": "uz3", "title": "Jul-Aug 5 N Package", "pdf": "pdfs/Sample-for-JulyAugust-6D-5N.Uz-1.pdf", "validity": "1.07.2026-30.08.2026 Validity" }
+        {
+          "id": "uz1",
+          "title": "Jul-Aug 3 N Package",
+          "pdf": "pdfs/Sample-for-julyAugust-3N-4D.-Uz.pdf",
+          "validity": "1.07.2026-30.08.2026 Validity"
+        },
+        {
+          "id": "uz2",
+          "title": "Jul-Aug 4 N Package",
+          "pdf": "pdfs/Sample-for-JulyAugust-4N-5D.Uz-1.pdf",
+          "validity": "1.07.2026-30.08.2026 Validity"
+        },
+        {
+          "id": "uz3",
+          "title": "Jul-Aug 5 N Package",
+          "pdf": "pdfs/Sample-for-JulyAugust-6D-5N.Uz-1.pdf",
+          "validity": "1.07.2026-30.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +998 888 853 22 00 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+998 888 853 22 00",
+          "whatsapp": "9988888532200"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -93,10 +234,26 @@
       "title": "KAZAKHSTAN :",
       "info": [],
       "packages": [
-        { "id": "kz1", "title": "Summer Tour Package", "pdf": "pdfs/sample-package-Kazakhstan-summer-1.pdf", "validity": "01.06.2025-31.08.2026 Validity" },
-        { "id": "kz2", "title": "Almaty Tour Package", "pdf": "pdfs/Sample-Package-Almaty.pdf", "validity": "01.06.2025-30.09.2026 Validity" }
+        {
+          "id": "kz1",
+          "title": "Summer Tour Package",
+          "pdf": "pdfs/sample-package-Kazakhstan-summer-1.pdf",
+          "validity": "01.06.2025-31.08.2026 Validity"
+        },
+        {
+          "id": "kz2",
+          "title": "Almaty Tour Package",
+          "pdf": "pdfs/Sample-Package-Almaty.pdf",
+          "validity": "01.06.2025-30.09.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +7 707 253 2201 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+7 707 253 2201",
+          "whatsapp": "77072532201"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -104,10 +261,26 @@
       "title": "KYRGYZSTAN :",
       "info": [],
       "packages": [
-        { "id": "kg1", "title": "Kyrgyzstan Summer Tour Package 2026", "pdf": "pdfs/Kyrgyzstan-Summer-Tour-Package-2026-1.pdf", "validity": "01.06.2025-31.08.2026 Validity" },
-        { "id": "kg2", "title": "Kazakhstan–Kyrgyzstan Combo Full Package 2026", "pdf": "pdfs/Kazakhstan_Kyrgyzstan_Combo_Full.pdf", "validity": "01.07.2025-31.08.2026 Validity" }
+        {
+          "id": "kg1",
+          "title": "Kyrgyzstan Summer Tour Package 2026",
+          "pdf": "pdfs/Kyrgyzstan-Summer-Tour-Package-2026-1.pdf",
+          "validity": "01.06.2025-31.08.2026 Validity"
+        },
+        {
+          "id": "kg2",
+          "title": "Kazakhstan–Kyrgyzstan Combo Full Package 2026",
+          "pdf": "pdfs/Kazakhstan_Kyrgyzstan_Combo_Full.pdf",
+          "validity": "01.07.2025-31.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +996 777 532 202 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+996 777 532 202",
+          "whatsapp": "996777532202"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -115,10 +288,26 @@
       "title": "CZECH REPUBLIC :",
       "info": [],
       "packages": [
-        { "id": "cz1", "title": "Czech Republic Promotion", "pdf": "pdfs/Czech-Republic-Promotion-2.pdf", "validity": "01.07.2026-30.08.2026 Validity" },
-        { "id": "cz2", "title": "5 Night Czech Republic Promotion", "pdf": "pdfs/5-nights.pdf", "validity": "01.07.2026-30.08.2026 Validity" }
+        {
+          "id": "cz1",
+          "title": "Czech Republic Promotion",
+          "pdf": "pdfs/Czech-Republic-Promotion-2.pdf",
+          "validity": "01.07.2026-30.08.2026 Validity"
+        },
+        {
+          "id": "cz2",
+          "title": "5 Night Czech Republic Promotion",
+          "pdf": "pdfs/5-nights.pdf",
+          "validity": "01.07.2026-30.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +420 778 582 200 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+420 778 582 200",
+          "whatsapp": "420778582200"
+        }
+      ],
       "email": "info@zakher.travel"
     },
     {
@@ -126,11 +315,32 @@
       "title": "EUROPE:",
       "info": [],
       "packages": [
-        { "id": "eu1", "title": "Karlovy Vary Sanatorium Package", "pdf": "pdfs/Karlovy-Vary-Sanatorium-Package.pdf", "validity": "10.05.2026-31.10.2026 Validity" },
-        { "id": "eu2", "title": "7 NIGHTS PROMOTIONAL PACKAGE FOR LATVIA", "pdf": "pdfs/7-NIGHTS-PROMOTIONAL-PACKAGE-FOR-LATVIA-RIGA-FOR-SUMMER.pdf", "validity": "01.06.2026-31.08.2026 Validity" },
-        { "id": "eu3", "title": "4 NIGHTS MILAN PROMOTIONAL PACKAGE", "pdf": "pdfs/4-Nights-Milan.pdf", "validity": "01.06.2026-31.08.2026 Validity" }
+        {
+          "id": "eu1",
+          "title": "Karlovy Vary Sanatorium Package",
+          "pdf": "pdfs/Karlovy-Vary-Sanatorium-Package.pdf",
+          "validity": "10.05.2026-31.10.2026 Validity"
+        },
+        {
+          "id": "eu2",
+          "title": "7 NIGHTS PROMOTIONAL PACKAGE FOR LATVIA",
+          "pdf": "pdfs/7-NIGHTS-PROMOTIONAL-PACKAGE-FOR-LATVIA-RIGA-FOR-SUMMER.pdf",
+          "validity": "01.06.2026-31.08.2026 Validity"
+        },
+        {
+          "id": "eu3",
+          "title": "4 NIGHTS MILAN PROMOTIONAL PACKAGE",
+          "pdf": "pdfs/4-Nights-Milan.pdf",
+          "validity": "01.06.2026-31.08.2026 Validity"
+        }
       ],
-      "contact": "for more information please contact +420 778 582 200 email:",
+      "contactPrefix": "for more information please contact",
+      "phones": [
+        {
+          "number": "+420 778 582 200",
+          "whatsapp": "420778582200"
+        }
+      ],
       "email": "info@zakher.travel"
     }
   ]
