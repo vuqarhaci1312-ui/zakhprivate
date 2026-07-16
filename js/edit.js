@@ -2,10 +2,23 @@ let editData = null;
 let activeLinkAnchor = null;
 let activePhoneAnchor = null;
 let activeEmailAnchor = null;
+let activeCountrySection = null;
 let selectedRange = null;
 
 function uid() {
   return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function sanitizePdfName(name) {
+  return name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
+}
+
+function pdfPathFromFile(file) {
+  return 'pdfs/' + sanitizePdfName(file.name);
+}
+
+function isPlaceholderPdf(path) {
+  return !path || /yeni(-paket)?\.pdf$/i.test(path.split('/').pop());
 }
 
 function slugify(text) {
@@ -121,8 +134,9 @@ function createToolbar() {
   bar.id = 'edit-toolbar';
   bar.innerHTML = `
     <span class="edit-badge">✎ Redaktə rejimi</span>
-    <span class="edit-hint">Mətnə kliklə · Telefon/Emailə kliklə → redaktə · Söz seç → Link et</span>
+    <span class="edit-hint">Mətnə kliklə · + PDF ilə yeni paket əlavə et</span>
     <div class="edit-actions">
+      <button type="button" id="btn-add-pdf" class="et-btn et-save">+ PDF paket</button>
       <button type="button" id="btn-add-link" class="et-btn" disabled>Link et</button>
       <button type="button" id="btn-save" class="et-btn et-save">Yadda saxla</button>
       <button type="button" id="btn-export" class="et-btn">Export</button>
@@ -171,6 +185,31 @@ function createModals() {
         </div>
       </div>`;
     document.body.appendChild(pdfM);
+  }
+
+  if (!document.getElementById('new-pkg-modal')) {
+    const pkgM = document.createElement('div');
+    pkgM.id = 'new-pkg-modal';
+    pkgM.className = 'edit-modal';
+    pkgM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>Yeni PDF paket əlavə et</h3>
+        <div id="new-pkg-country-row">
+          <label>Ölkə</label>
+          <select id="new-pkg-country"></select>
+        </div>
+        <label>Paket adı</label>
+        <input type="text" id="new-pkg-title" placeholder="Məs: Summer Package 2026">
+        <label>PDF fayl (mütləq)</label>
+        <input type="file" id="new-pkg-file" accept=".pdf" required>
+        <label>Etibarlılıq müddəti</label>
+        <input type="text" id="new-pkg-validity" placeholder="01.06.2026-30.08.2026 Validity" value="01.01.2026-31.12.2026 Validity">
+        <div class="modal-btns">
+          <button type="button" id="new-pkg-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="new-pkg-confirm" class="et-btn et-save">Əlavə et</button>
+        </div>
+      </div>`;
+    document.body.appendChild(pkgM);
   }
 
   if (!document.getElementById('phone-modal')) {
@@ -269,10 +308,48 @@ function openEmailModal(anchor) {
 
 function openPdfModal(anchor) {
   activeLinkAnchor = anchor;
+  const isNew = isPlaceholderPdf(anchor.dataset.pdf || '');
+  document.querySelector('#pdf-modal h3').textContent = isNew ? 'Yeni PDF yüklə' : 'PDF dəyiş / yüklə';
   document.getElementById('pdf-modal-title').textContent = anchor.textContent;
-  document.getElementById('pdf-modal-path').value = anchor.dataset.pdf || '';
+  document.getElementById('pdf-modal-path').value = isNew ? '' : (anchor.dataset.pdf || '');
   document.getElementById('pdf-modal-file').value = '';
   document.getElementById('pdf-modal').classList.add('show');
+}
+
+function openNewPkgModal(section) {
+  activeCountrySection = section || null;
+  const countryRow = document.getElementById('new-pkg-country-row');
+  const countrySelect = document.getElementById('new-pkg-country');
+  if (section) {
+    countryRow.style.display = 'none';
+  } else {
+    countryRow.style.display = 'block';
+    countrySelect.innerHTML = '';
+    document.querySelectorAll('.country-section').forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.querySelector('h2')?.textContent.trim() || s.id;
+      countrySelect.appendChild(opt);
+    });
+  }
+  document.getElementById('new-pkg-title').value = '';
+  document.getElementById('new-pkg-file').value = '';
+  document.getElementById('new-pkg-validity').value = '01.01.2026-31.12.2026 Validity';
+  document.getElementById('new-pkg-modal').classList.add('show');
+}
+
+async function addNewPdfPackage(section, title, file, validity) {
+  const path = pdfPathFromFile(file);
+  await uploadPdf(path, file);
+  await storePdf(path, file);
+  const url = await resolvePdfUrl(path);
+  const li = createPackageLi(title, path, validity);
+  const a = li.querySelector('a.pdf-link');
+  a.href = url;
+  section.querySelector('.packages').appendChild(li);
+  enableEditables();
+  bindAllActions();
+  return li;
 }
 
 function enableEditables() {
@@ -340,7 +417,7 @@ function createPackageLi(title, pdf, validity) {
     <a href="#" class="pdf-link" data-pdf="${pdf}">${title}</a>
     <span class="validity">${validity}</span>
     <div class="pkg-edit-actions">
-      <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF dəyiş">PDF</button>
+      <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF əlavə et / dəyiş">PDF</button>
       <button type="button" class="pkg-btn pkg-del-btn" title="Sil">✕</button>
     </div>`;
   return li;
@@ -426,15 +503,8 @@ function bindAllActions() {
     };
   });
 
-  document.querySelectorAll('.se-add-pkg').forEach(btn => {
-    btn.onclick = () => {
-      const ul = btn.closest('.country-section').querySelector('.packages');
-      const li = createPackageLi('Yeni paket', 'pdfs/yeni-paket.pdf', '01.01.2026-31.12.2026 Validity');
-      ul.appendChild(li);
-      enableEditables();
-      bindAllActions();
-      li.querySelector('a').focus();
-    };
+  document.querySelectorAll('.se-add-pkg, .add-pkg-btn').forEach(btn => {
+    btn.onclick = () => openNewPkgModal(btn.closest('.country-section'));
   });
 
   document.querySelectorAll('.se-del-country').forEach(btn => {
@@ -475,6 +545,8 @@ function bindToolbar() {
     btnLink.disabled = !sel || sel.text.length < 1;
   };
 
+  document.getElementById('btn-add-pdf').onclick = () => openNewPkgModal(null);
+
   btnLink.onclick = () => {
     const sel = getSelectionInEditable();
     if (!sel) return;
@@ -491,7 +563,7 @@ function bindToolbar() {
   document.getElementById('modal-confirm').onclick = async () => {
     const file = document.getElementById('modal-pdf-file').files[0];
     let path = document.getElementById('modal-pdf-path').value.trim();
-    if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
+    if (file) path = pdfPathFromFile(file);
     if (!path) { showToast('PDF seçin'); return; }
     try {
       await applyLinkToSelection(path, file);
@@ -510,12 +582,39 @@ function bindToolbar() {
   document.getElementById('pdf-modal-confirm').onclick = async () => {
     const file = document.getElementById('pdf-modal-file').files[0];
     let path = document.getElementById('pdf-modal-path').value.trim();
-    if (file) path = 'pdfs/' + file.name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
+    if (file) path = pdfPathFromFile(file);
+    const needsFile = isPlaceholderPdf(activeLinkAnchor?.dataset.pdf || path);
     if (!path || !activeLinkAnchor) { showToast('PDF seçin'); return; }
+    if (needsFile && !file) { showToast('Yeni PDF üçün fayl yükləyin'); return; }
     try {
       await applyPdfToAnchor(activeLinkAnchor, path, file);
       document.getElementById('pdf-modal').classList.remove('show');
       showToast(file ? 'PDF serverə yükləndi' : 'PDF yeniləndi');
+    } catch (e) {
+      showToast('Xəta: ' + e.message);
+    }
+  };
+
+  document.getElementById('new-pkg-cancel').onclick = () =>
+    document.getElementById('new-pkg-modal').classList.remove('show');
+
+  document.getElementById('new-pkg-confirm').onclick = async () => {
+    const file = document.getElementById('new-pkg-file').files[0];
+    const title = document.getElementById('new-pkg-title').value.trim();
+    const validity = document.getElementById('new-pkg-validity').value.trim() || '01.01.2026-31.12.2026 Validity';
+    if (!file) { showToast('PDF fayl seçin'); return; }
+    if (!title) { showToast('Paket adı yazın'); return; }
+    let section = activeCountrySection;
+    if (!section) {
+      const id = document.getElementById('new-pkg-country').value;
+      section = document.getElementById(id);
+    }
+    if (!section) { showToast('Ölkə seçin'); return; }
+    try {
+      await addNewPdfPackage(section, title, file, validity);
+      document.getElementById('new-pkg-modal').classList.remove('show');
+      showToast('PDF paket əlavə edildi — Yadda saxla bas');
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (e) {
       showToast('Xəta: ' + e.message);
     }

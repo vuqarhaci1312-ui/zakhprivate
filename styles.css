@@ -297,12 +297,15 @@ body.edit-mode .add-pkg-btn { display: block; }
 }
 
 .edit-modal-box input[type="text"],
-.edit-modal-box input[type="file"] {
+.edit-modal-box input[type="email"],
+.edit-modal-box input[type="file"],
+.edit-modal-box select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #d2d2d7;
   border-radius: 8px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .modal-selected {

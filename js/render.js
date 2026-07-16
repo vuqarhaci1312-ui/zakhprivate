@@ -50,7 +50,7 @@ async function renderPackage(pkg) {
   const actions = document.createElement('div');
   actions.className = 'pkg-edit-actions';
   actions.innerHTML = `
-    <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF dəyiş">PDF</button>
+    <button type="button" class="pkg-btn pkg-pdf-btn" title="PDF əlavə et / dəyiş">PDF</button>
     <button type="button" class="pkg-btn pkg-del-btn" title="Sil">✕</button>
   `;
   li.appendChild(a);
@@ -71,7 +71,7 @@ async function renderCountry(country, idx) {
     <button type="button" class="se-btn se-add-text">+ Mətn</button>
     <button type="button" class="se-btn se-add-link">+ Link bloku</button>
     <button type="button" class="se-btn se-add-phone">+ Telefon</button>
-    <button type="button" class="se-btn se-add-pkg">+ Paket</button>
+    <button type="button" class="se-btn se-add-pkg">+ PDF paket</button>
     <button type="button" class="se-btn se-del-country">Ölkəni sil</button>
   `;
   section.appendChild(bar);
@@ -95,6 +95,12 @@ async function renderCountry(country, idx) {
     ul.appendChild(await renderPackage(pkg));
   }
   section.appendChild(ul);
+
+  const addPkgBtn = document.createElement('button');
+  addPkgBtn.type = 'button';
+  addPkgBtn.className = 'add-pkg-btn se-add-pkg';
+  addPkgBtn.textContent = '+ PDF paket əlavə et';
+  section.appendChild(addPkgBtn);
 
   const contact = renderContact(country);
   section.appendChild(contact);
