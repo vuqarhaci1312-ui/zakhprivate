@@ -102,7 +102,7 @@
           "whatsapp": "905446903407"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "turkiye@zakher.travel"
     },
     {
       "id": "poland",
@@ -112,11 +112,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+48 662 603 381",
-          "whatsapp": "48662603381"
+          "number": "+48 666 362 201",
+          "whatsapp": "48666362201"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "poland@zakher.travel"
     },
     {
       "id": "georgia",
@@ -163,11 +163,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+995 591 80 06 84",
-          "whatsapp": "995591800684"
+          "number": "+995 579 99 22 00",
+          "whatsapp": "995579992200"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "georgia@zakher.travel"
     },
     {
       "id": "russia",
@@ -190,11 +190,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+7 999 904 45 15",
-          "whatsapp": "79999044515"
+          "number": "+7 999 553-22-20",
+          "whatsapp": "79995532220"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "russia@zakher.travel"
     },
     {
       "id": "uzbekistan",
@@ -223,11 +223,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+998 888 853 22 00",
-          "whatsapp": "9988888532200"
+          "number": "+998 888532200",
+          "whatsapp": "998888532200"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "uzbekistan@zakher.travel"
     },
     {
       "id": "kazakhstan",
@@ -250,11 +250,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+7 707 253 2201",
-          "whatsapp": "77072532201"
+          "number": "+7 707 253 2200",
+          "whatsapp": "77072532200"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "kazakhstan@zakher.travel"
     },
     {
       "id": "kyrgyzstan",
@@ -277,11 +277,11 @@
       "contactPrefix": "for more information please contact",
       "phones": [
         {
-          "number": "+996 777 532 202",
-          "whatsapp": "996777532202"
+          "number": "+996 777 532 200",
+          "whatsapp": "996777532200"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "kyrgyzstan@zakher.travel"
     },
     {
       "id": "czech",
@@ -308,7 +308,7 @@
           "whatsapp": "420778582200"
         }
       ],
-      "email": "info@zakher.travel"
+      "email": "europe@zakher.travel"
     },
     {
       "id": "europe",
