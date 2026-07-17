@@ -1,5 +1,14 @@
 const SAVE_TOKEN_KEY = 'zakher_save_token';
 
+function apiBase() {
+  return (window.ZAKHER_API_BASE || '').replace(/\/$/, '');
+}
+
+function apiUrl(path) {
+  const base = apiBase();
+  return base ? `${base}${path}` : `/api${path}`;
+}
+
 function getContentUrl() {
   return window.location.pathname.includes('/admin') ? '../content.json' : 'content.json';
 }
@@ -10,7 +19,7 @@ function hasSaveToken() {
 
 async function loadContent() {
   try {
-    const res = await fetch('/api/content?t=' + Date.now(), { cache: 'no-store' });
+    const res = await fetch(apiUrl('/content') + '?t=' + Date.now(), { cache: 'no-store' });
     if (res.ok) return res.json();
   } catch {}
   const res = await fetch(getContentUrl() + '?t=' + Date.now(), { cache: 'no-store' });
@@ -21,7 +30,7 @@ async function saveContent(data) {
   const token = sessionStorage.getItem(SAVE_TOKEN_KEY);
   if (!token) throw new Error('Server girişi lazımdır. /admin-dən yenidən daxil olun.');
 
-  const res = await fetch('/api/save', {
+  const res = await fetch(apiUrl('/save'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,7 +44,7 @@ async function saveContent(data) {
 }
 
 async function serverLogin(username, password) {
-  const res = await fetch('/api/login', {
+  const res = await fetch(apiUrl('/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
@@ -50,28 +59,18 @@ function clearSaveToken() {
   sessionStorage.removeItem(SAVE_TOKEN_KEY);
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 async function uploadPdf(path, file) {
   const token = sessionStorage.getItem(SAVE_TOKEN_KEY);
   if (!token) throw new Error('Server girişi lazımdır. /admin-dən yenidən daxil olun.');
-  if (file.size > 3 * 1024 * 1024) throw new Error('PDF çox böyükdür (max 3MB).');
+  if (file.size > 20 * 1024 * 1024) throw new Error('PDF çox böyükdür (max 20MB).');
 
-  const data = await fileToBase64(file);
-  const res = await fetch('/api/upload-pdf', {
+  const form = new FormData();
+  form.append('path', path);
+  form.append('file', file);
+  const res = await fetch(apiUrl('/upload-pdf'), {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ path, data })
+    headers: { Authorization: `Bearer ${token}` },
+    body: form
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

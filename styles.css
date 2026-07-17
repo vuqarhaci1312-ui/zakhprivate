@@ -339,6 +339,16 @@ body.edit-mode .add-pkg-btn { display: block; }
   color: #fff;
 }
 
+.modal-btns .et-save:hover:not(:disabled) {
+  background: #0056b3;
+  color: #fff;
+}
+
+.modal-btns .et-dark:hover:not(:disabled) {
+  background: #d2d2d7;
+  color: #1d1d1f;
+}
+
 #edit-toast {
   position: fixed;
   bottom: 24px;

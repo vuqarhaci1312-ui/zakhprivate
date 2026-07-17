@@ -1,4 +1,5 @@
 {
   "name": "zakher-tours",
-  "private": true
+  "private": true,
+  "type": "module"
 }
