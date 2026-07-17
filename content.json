@@ -56,6 +56,12 @@
           "title": "SMPL packages for Azerbaijan (June, July, August)",
           "pdf": "pdfs/Summer-Package-for-Azerbaijan.pdf",
           "validity": "01.06.2026-30.08.2026 Validity"
+        },
+        {
+          "id": "id_mrozdlohnps3",
+          "title": "test",
+          "pdf": "pdfs/Kazakhstan_Kyrgyzstan_Combo_Package.pdf",
+          "validity": "01.01.2026-31.12.2026 Validity"
         }
       ],
       "contactPrefix": "for more information please contact:",
@@ -264,6 +270,12 @@
           "title": "Almaty Tour Package",
           "pdf": "pdfs/Sample-Package-Almaty.pdf",
           "validity": "01.06.2025-30.09.2026 Validity"
+        },
+        {
+          "id": "id_mrozdloikvdk",
+          "title": "Kazakhstan & Kyrgyzstan Combo Package (6 nights)",
+          "pdf": "pdfs/Kazakhstan_Kyrgyzstan_Combo_Package.pdf",
+          "validity": "01.07.2026-31.08.2026 Validity"
         }
       ],
       "contactPrefix": "for more information please contact:",
