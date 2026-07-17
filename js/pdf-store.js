@@ -33,6 +33,10 @@ async function getPdfBlob(path) {
 
 const blobCache = {};
 
+function pdfApiUrl(path) {
+  return '/api/pdf?path=' + encodeURIComponent(path);
+}
+
 async function resolvePdfUrl(pdf) {
   if (!pdf) return '#';
   const blob = await getPdfBlob(pdf);
@@ -40,5 +44,6 @@ async function resolvePdfUrl(pdf) {
     if (!blobCache[pdf]) blobCache[pdf] = URL.createObjectURL(blob);
     return blobCache[pdf];
   }
+  if (pdf.startsWith('pdfs/')) return pdfApiUrl(pdf);
   return GH_RAW + pdf.split('/').map(encodeURIComponent).join('/');
 }
