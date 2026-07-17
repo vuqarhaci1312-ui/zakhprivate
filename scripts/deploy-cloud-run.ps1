@@ -9,20 +9,14 @@ $Region = if ($env:GCP_REGION) { $env:GCP_REGION } else { 'europe-west1' }
 $Service = if ($env:CLOUD_RUN_SERVICE) { $env:CLOUD_RUN_SERVICE } else { 'zakher-api' }
 $Bucket = if ($env:GCS_BUCKET) { $env:GCS_BUCKET } else { 'zakher-travel-data' }
 
-$AdminUser = if ($env:ADMIN_USERNAME) { $env:ADMIN_USERNAME } else { 'zakher_admin' }
-$AdminPass = if ($env:ADMIN_PASSWORD) { $env:ADMIN_PASSWORD } else { 'Z@kher#2026$Secure!' }
-$TokenSecret = if ($env:TOKEN_SECRET) { $env:TOKEN_SECRET } else { 'xK9mP2vL8qR4wN7' }
-$Origins = 'https://zakherprivate.vercel.app,https://zakhprivate.vercel.app,http://localhost:8080,http://127.0.0.1:8080'
-
-& $Gcloud config set project $Project
-
 Push-Location (Join-Path $PSScriptRoot '..\backend')
+$EnvFile = Join-Path (Get-Location) 'env.yaml'
 try {
   & $Gcloud run deploy $Service `
     --source . `
     --region $Region `
     --allow-unauthenticated `
-    --set-env-vars "GCS_BUCKET=$Bucket,ADMIN_USERNAME=$AdminUser,ADMIN_PASSWORD=$AdminPass,TOKEN_SECRET=$TokenSecret,ALLOWED_ORIGINS=$Origins"
+    --env-vars-file $EnvFile
 } finally {
   Pop-Location
 }

@@ -13,7 +13,8 @@ Write-Host "Project: $Project"
 & $Gcloud config set project $Project
 & $Gcloud services enable run.googleapis.com storage.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
 
-$exists = & $Gsutil ls -b "gs://$Bucket" 2>$null
+$exists = $false
+try { $null = & $Gsutil ls -b "gs://$Bucket" 2>&1; $exists = $true } catch {}
 if (-not $exists) {
   & $Gsutil mb -l $Region "gs://$Bucket"
   Write-Host "Created bucket gs://$Bucket"
