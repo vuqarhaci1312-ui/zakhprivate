@@ -1,3 +1,5 @@
+let previewHistoryActive = false;
+
 function ensurePdfPreviewModal() {
   if (document.getElementById('pdf-preview-modal')) return;
   const modal = document.createElement('div');
@@ -19,9 +21,13 @@ function ensurePdfPreviewModal() {
   modal.addEventListener('click', e => {
     if (e.target === modal) closePdfPreview();
   });
-  document.getElementById('pdf-preview-close').onclick = closePdfPreview;
+  document.getElementById('pdf-preview-close').onclick = () => closePdfPreview();
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePdfPreview();
+  });
+  window.addEventListener('popstate', () => {
+    const m = document.getElementById('pdf-preview-modal');
+    if (m?.classList.contains('show')) closePdfPreview(true);
   });
 }
 
@@ -29,20 +35,29 @@ function openPdfPreview(url, title) {
   ensurePdfPreviewModal();
   const modal = document.getElementById('pdf-preview-modal');
   const frame = document.getElementById('pdf-preview-frame');
+  const wasOpen = modal.classList.contains('show');
   document.getElementById('pdf-preview-title').textContent = title || 'PDF';
   document.getElementById('pdf-preview-open').href = url;
   frame.src = url;
   modal.classList.add('show');
   document.body.classList.add('pdf-preview-open');
+  if (!wasOpen) {
+    history.pushState({ pdfPreview: true }, '');
+    previewHistoryActive = true;
+  }
 }
 
-function closePdfPreview() {
+function closePdfPreview(fromPopstate = false) {
   const modal = document.getElementById('pdf-preview-modal');
-  if (!modal) return;
+  if (!modal || !modal.classList.contains('show')) return;
   modal.classList.remove('show');
   document.body.classList.remove('pdf-preview-open');
   const frame = document.getElementById('pdf-preview-frame');
   if (frame) frame.src = 'about:blank';
+  if (previewHistoryActive) {
+    previewHistoryActive = false;
+    if (!fromPopstate) history.back();
+  }
 }
 
 function initPdfPreviewLinks() {
