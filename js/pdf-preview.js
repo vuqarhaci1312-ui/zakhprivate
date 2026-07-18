@@ -100,16 +100,24 @@ async function renderMobilePdf(url, pdfPath) {
     if (!res.ok) throw new Error('fetch failed');
     const pdf = await pdfjsLib.getDocument({ data: await res.arrayBuffer() }).promise;
     const width = scroll.clientWidth || window.innerWidth;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     for (let n = 1; n <= pdf.numPages; n++) {
       const page = await pdf.getPage(n);
       const baseVp = page.getViewport({ scale: 1 });
-      const scale = Math.max((width - 16) / baseVp.width, 0.1);
-      const vp = page.getViewport({ scale });
+      const displayScale = Math.max((width - 16) / baseVp.width, 0.1);
+      const vp = page.getViewport({ scale: displayScale });
       const canvas = document.createElement('canvas');
-      canvas.width = vp.width;
-      canvas.height = vp.height;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      canvas.width = Math.floor(vp.width * dpr);
+      canvas.height = Math.floor(vp.height * dpr);
+      canvas.style.width = Math.floor(vp.width) + 'px';
+      canvas.style.height = Math.floor(vp.height) + 'px';
       canvas.className = 'pdf-preview-page';
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      await page.render({
+        canvasContext: ctx,
+        viewport: vp,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+      }).promise;
       scroll.appendChild(canvas);
     }
   } catch {
