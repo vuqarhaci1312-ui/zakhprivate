@@ -9,12 +9,31 @@ function uid() {
   return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-function sanitizePdfName(name) {
-  return name.replace(/[^a-zA-Z0-9._\-–]/g, '_');
+function sanitizePdfStem(name) {
+  let stem = String(name || 'document').replace(/\.pdf$/i, '');
+  stem = stem.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  return stem || 'document';
 }
 
-function pdfPathFromFile(file) {
-  return 'pdfs/' + sanitizePdfName(file.name);
+function normalizePdfPath(path) {
+  let p = String(path || '').trim().replace(/\\/g, '/');
+  if (!p) return '';
+  if (!p.startsWith('pdfs/')) p = 'pdfs/' + p.split('/').pop();
+  const parts = p.split('/');
+  const file = parts.pop().replace(/[^a-zA-Z0-9._-]/g, '_') || 'document';
+  p = parts.join('/') + '/' + file;
+  if (!/\.pdf$/i.test(p)) p += '.pdf';
+  return p;
+}
+
+function countryIdFromEl(el) {
+  return el?.closest('.country-section')?.id || '';
+}
+
+function pdfPathFromFile(file, countryId) {
+  const stem = sanitizePdfStem(file.name);
+  const prefix = countryId ? `${countryId}_` : '';
+  return `pdfs/${prefix}${stem}_${Date.now().toString(36)}.pdf`;
 }
 
 function isPlaceholderPdf(path) {
@@ -265,7 +284,10 @@ function getSelectionInEditable() {
 
 async function applyLinkToSelection(pdfPath, file) {
   if (!selectedRange) return;
-  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
+  const countryId = countryIdFromEl(selectedRange.editable);
+  let path = normalizePdfPath(pdfPath);
+  if (file) path = pdfPathFromFile(file, countryId);
+  if (!path) throw new Error('PDF yolu düzgün deyil');
   if (file) {
     await uploadPdf(path, file);
     await storePdf(path, file);
@@ -284,7 +306,10 @@ async function applyLinkToSelection(pdfPath, file) {
 }
 
 async function applyPdfToAnchor(anchor, pdfPath, file) {
-  const path = pdfPath.startsWith('pdfs/') ? pdfPath : 'pdfs/' + pdfPath.split('/').pop();
+  const countryId = countryIdFromEl(anchor);
+  let path = normalizePdfPath(pdfPath);
+  if (file) path = pdfPathFromFile(file, countryId);
+  if (!path) throw new Error('PDF yolu düzgün deyil');
   if (file) {
     await uploadPdf(path, file);
     await storePdf(path, file);
@@ -339,7 +364,7 @@ function openNewPkgModal(section) {
 }
 
 async function addNewPdfPackage(section, title, file, validity) {
-  const path = pdfPathFromFile(file);
+  const path = pdfPathFromFile(file, section.id);
   await uploadPdf(path, file);
   await storePdf(path, file);
   const url = await resolvePdfUrl(path);
@@ -573,8 +598,8 @@ function bindToolbar() {
 
   document.getElementById('modal-confirm').onclick = async () => {
     const file = document.getElementById('modal-pdf-file').files[0];
-    let path = document.getElementById('modal-pdf-path').value.trim();
-    if (file) path = pdfPathFromFile(file);
+    let path = normalizePdfPath(document.getElementById('modal-pdf-path').value.trim());
+    if (file) path = pdfPathFromFile(file, countryIdFromEl(selectedRange?.editable));
     if (!path) { showToast('PDF seçin'); return; }
     try {
       await applyLinkToSelection(path, file);
@@ -592,8 +617,8 @@ function bindToolbar() {
 
   document.getElementById('pdf-modal-confirm').onclick = async () => {
     const file = document.getElementById('pdf-modal-file').files[0];
-    let path = document.getElementById('pdf-modal-path').value.trim();
-    if (file) path = pdfPathFromFile(file);
+    let path = normalizePdfPath(document.getElementById('pdf-modal-path').value.trim());
+    if (file) path = pdfPathFromFile(file, countryIdFromEl(activeLinkAnchor));
     const needsFile = isPlaceholderPdf(activeLinkAnchor?.dataset.pdf || path);
     if (!path || !activeLinkAnchor) { showToast('PDF seçin'); return; }
     if (needsFile && !file) { showToast('Yeni PDF üçün fayl yükləyin'); return; }

@@ -74,7 +74,7 @@ async function uploadPdf(path, file) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'PDF upload failed');
+    throw new Error(err.error || err.detail || 'PDF upload failed');
   }
   return res.json();
 }

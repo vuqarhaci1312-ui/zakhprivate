@@ -22,6 +22,17 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 
+function normalizePdfPath(raw) {
+  let path = String(raw || '').trim().replace(/\\/g, '/');
+  if (!path) return null;
+  if (!path.startsWith('pdfs/')) path = 'pdfs/' + path.split('/').pop();
+  const parts = path.split('/');
+  const file = parts.pop().replace(/[^a-zA-Z0-9._-]/g, '_') || 'document';
+  path = parts.join('/') + '/' + file;
+  if (!/\.pdf$/i.test(path)) path += '.pdf';
+  return path;
+}
+
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.post('/login', (req, res) => {
@@ -58,11 +69,8 @@ app.post('/save', authMiddleware, async (req, res) => {
 });
 
 app.post('/upload-pdf', authMiddleware, upload.single('file'), async (req, res) => {
-  let path = req.body?.path || '';
-  if (!path.startsWith('pdfs/')) path = 'pdfs/' + path.split('/').pop();
-  if (!path.toLowerCase().endsWith('.pdf')) {
-    return res.status(400).json({ error: 'Invalid PDF path' });
-  }
+  const path = normalizePdfPath(req.body?.path || '');
+  if (!path) return res.status(400).json({ error: 'Invalid PDF path' });
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
     await writePdf(path, req.file.buffer, req.file.mimetype || 'application/pdf');
