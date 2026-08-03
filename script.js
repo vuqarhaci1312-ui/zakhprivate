@@ -36,15 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
     errorEl.textContent = '';
     errorEl.style.color = '#ff3b30';
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Yoxlanılır...';
+    submitBtn.textContent = 'Checking...';
 
     const username = document.getElementById('site-username').value.trim();
     const password = document.getElementById('site-password').value;
 
     if (!username || !password) {
-      errorEl.textContent = 'İstifadəçi adı və şifrə daxil edin.';
+      errorEl.textContent = 'Enter username and password.';
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Daxil ol';
+      submitBtn.textContent = 'Sign in';
       return;
     }
 
@@ -52,20 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await attemptSiteLogin(username, password);
       if (result.ok) {
         errorEl.style.color = '#34c759';
-        errorEl.textContent = 'Uğurlu! Sayt yüklənir...';
+        errorEl.textContent = 'Success! Loading site...';
         await bootApp();
         return;
       }
       if (result.locked) {
-        errorEl.textContent = 'Həddindən çox cəhd. ' + result.remaining + ' saniyə gözləyin.';
+        errorEl.textContent = 'Too many attempts. Wait ' + result.remaining + ' seconds.';
       } else {
-        errorEl.textContent = 'İstifadəçi adı və ya şifrə yanlışdır. ' + result.attemptsLeft + ' cəhd qalıb.';
+        errorEl.textContent = 'Invalid username or password. ' + result.attemptsLeft + ' attempts left.';
       }
     } catch (err) {
-      errorEl.textContent = 'Xəta: ' + (err.message || 'Bilinməyən xəta');
+      errorEl.textContent = 'Error: ' + (err.message || 'Unknown error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Daxil ol';
+      submitBtn.textContent = 'Sign in';
     }
   });
 });
