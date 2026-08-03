@@ -29,16 +29,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     errorEl.textContent = '';
     const username = document.getElementById('site-username').value.trim();
-    const password = document.getElementById('site-password').value;
-    const result = await attemptLogin(username, password);
-    if (result.ok) {
-      await bootApp();
-      return;
+    const password = document.getElementById('site-password').value.trim();
+    try {
+      const result = await attemptLogin(username, password);
+      if (result.ok) {
+        await bootApp();
+        return;
+      }
+      if (result.locked) {
+        errorEl.textContent = `Çox cəhd. ${result.remaining} saniyə gözləyin.`;
+        return;
+      }
+      errorEl.textContent = `Yanlış giriş. ${result.attemptsLeft} cəhd qaldı.`;
+    } catch (err) {
+      errorEl.textContent = err.message || 'Giriş xətası';
     }
-    if (result.locked) {
-      errorEl.textContent = `Çox cəhd. ${result.remaining} saniyə gözləyin.`;
-      return;
-    }
-    errorEl.textContent = `Yanlış giriş. ${result.attemptsLeft} cəhd qaldı.`;
   });
 });

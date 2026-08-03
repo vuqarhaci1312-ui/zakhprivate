@@ -23,7 +23,7 @@ async function initSiteAuth(force = false) {
     if (data?.username && data?.hash && data?.salt) {
       siteAuthConfig = {
         ...DEFAULT_AUTH,
-        username: data.username,
+        username: String(data.username).trim().toLowerCase(),
         salt: data.salt,
         hash: data.hash,
         iterations: data.iterations || DEFAULT_AUTH.iterations
@@ -33,28 +33,30 @@ async function initSiteAuth(force = false) {
     return null;
   }
 
-  try {
-    const res = await fetch(apiUrl('/site-auth') + '?t=' + Date.now(), { cache: 'no-store' });
-    if (res.ok) {
+  const localPath = window.location.pathname.includes('/admin') ? '../site-auth.json' : 'site-auth.json';
+  const sources = [
+    localPath,
+    '/api/site-auth',
+    apiBase() ? `${apiBase()}/site-auth` : null
+  ].filter(Boolean);
+
+  for (const source of sources) {
+    try {
+      const res = await fetch(source + (source.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) continue;
       const applied = await applyConfig(await res.json());
       if (applied) return applied;
-    }
-  } catch {}
+    } catch {}
+  }
 
-  try {
-    const localPath = window.location.pathname.includes('/admin') ? '../site-auth.json' : 'site-auth.json';
-    const res = await fetch(localPath + '?t=' + Date.now(), { cache: 'no-store' });
-    if (res.ok) {
-      const applied = await applyConfig(await res.json());
-      if (applied) return applied;
-    }
-  } catch {}
-
-  siteAuthConfig = { ...DEFAULT_AUTH };
+  siteAuthConfig = { ...DEFAULT_AUTH, username: DEFAULT_AUTH.username.toLowerCase() };
   return siteAuthConfig;
 }
 
 async function deriveHash(password, auth) {
+  if (!crypto?.subtle) {
+    throw new Error('Brauzer HTTPS tələb edir. Saytı https://zakherprivate.vercel.app ünvanından açın.');
+  }
   const cfg = auth || getActiveAuth();
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -157,8 +159,10 @@ async function attemptLogin(username, password) {
 
   await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
 
-  const userOk = timingSafeEqual(username, auth.username);
-  const passHash = await deriveHash(password, auth);
+  const normalizedUser = String(username || '').trim().toLowerCase();
+  const normalizedPass = String(password || '').trim();
+  const userOk = timingSafeEqual(normalizedUser, auth.username.trim().toLowerCase());
+  const passHash = await deriveHash(normalizedPass, auth);
   const passOk = timingSafeEqual(passHash, auth.hash);
 
   if (userOk && passOk) {
