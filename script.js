@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
         location.href = 'admin/';
       }
     } catch (err) {
-      console.error('bootApp error:', err);
       appEl.innerHTML = '<p style="padding:40px;text-align:center;color:red">Sayt yüklənmədi: ' + err.message + '</p>';
     }
   }
 
-  if (isAuthenticated()) {
+  if (isSiteAuthenticated()) {
     bootApp();
     return;
   }
@@ -50,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const result = await attemptLogin(username, password);
+      const result = await attemptSiteLogin(username, password);
       if (result.ok) {
         errorEl.style.color = '#34c759';
         errorEl.textContent = 'Uğurlu! Sayt yüklənir...';
@@ -63,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         errorEl.textContent = 'İstifadəçi adı və ya şifrə yanlışdır. ' + result.attemptsLeft + ' cəhd qalıb.';
       }
     } catch (err) {
-      console.error('Login error:', err);
       errorEl.textContent = 'Xəta: ' + (err.message || 'Bilinməyən xəta');
     } finally {
       submitBtn.disabled = false;
