@@ -28,7 +28,9 @@
   <script src="../js/data.js"></script>
   <script src="../js/auth.js"></script>
   <script>
-    if (isAuthenticated() && hasSaveToken()) location.href = '../?edit=1';
+    initSiteAuth().then(() => {
+      if (isAuthenticated() && hasSaveToken()) location.href = '../?edit=1';
+    });
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const err = document.getElementById('login-error');

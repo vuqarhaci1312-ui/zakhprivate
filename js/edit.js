@@ -157,6 +157,7 @@ function createToolbar() {
     <div class="edit-actions">
       <button type="button" id="btn-add-pdf" class="et-btn et-save">+ PDF paket</button>
       <button type="button" id="btn-add-link" class="et-btn" disabled>Link et</button>
+      <button type="button" id="btn-change-password" class="et-btn">Sayt şifrəsi</button>
       <button type="button" id="btn-save" class="et-btn et-save">Yadda saxla</button>
       <button type="button" id="btn-export" class="et-btn">Export</button>
       <button type="button" id="btn-exit" class="et-btn et-exit">Çıxış</button>
@@ -267,6 +268,28 @@ function createModals() {
         </div>
       </div>`;
     document.body.appendChild(emailM);
+  }
+
+  if (!document.getElementById('password-modal')) {
+    const passM = document.createElement('div');
+    passM.id = 'password-modal';
+    passM.className = 'edit-modal';
+    passM.innerHTML = `
+      <div class="edit-modal-box">
+        <h3>Sayt şifrəsini yenilə</h3>
+        <p class="modal-hint">Yeni şifrə bütün istifadəçilər üçün tətbiq olunacaq.</p>
+        <label>Köhnə şifrə</label>
+        <input type="password" id="password-modal-old" autocomplete="current-password">
+        <label>Yeni şifrə</label>
+        <input type="password" id="password-modal-new" autocomplete="new-password">
+        <label>Yeni şifrə (təsdiq)</label>
+        <input type="password" id="password-modal-confirm" autocomplete="new-password">
+        <div class="modal-btns">
+          <button type="button" id="password-modal-cancel" class="et-btn et-dark">Ləğv</button>
+          <button type="button" id="password-modal-confirm" class="et-btn et-save">Yenilə</button>
+        </div>
+      </div>`;
+    document.body.appendChild(passM);
   }
 }
 
@@ -698,6 +721,29 @@ function bindToolbar() {
     activeEmailAnchor.href = 'mailto:' + email;
     document.getElementById('email-modal').classList.remove('show');
     showToast('Email yeniləndi');
+  };
+
+  document.getElementById('btn-change-password').onclick = () => {
+    document.getElementById('password-modal-old').value = '';
+    document.getElementById('password-modal-new').value = '';
+    document.getElementById('password-modal-confirm').value = '';
+    document.getElementById('password-modal').classList.add('show');
+  };
+
+  document.getElementById('password-modal-cancel').onclick = () =>
+    document.getElementById('password-modal').classList.remove('show');
+
+  document.getElementById('password-modal-confirm').onclick = async () => {
+    const oldPassword = document.getElementById('password-modal-old').value;
+    const newPassword = document.getElementById('password-modal-new').value;
+    const confirmPassword = document.getElementById('password-modal-confirm').value;
+    try {
+      await changeSitePassword(oldPassword, newPassword, confirmPassword);
+      document.getElementById('password-modal').classList.remove('show');
+      showToast('Sayt şifrəsi yeniləndi');
+    } catch (e) {
+      showToast('Xəta: ' + e.message);
+    }
   };
 
   document.querySelectorAll('.edit-modal').forEach(m => {

@@ -3,6 +3,12 @@ import cors from 'cors';
 import multer from 'multer';
 import { createToken, authMiddleware } from './lib/auth.js';
 import { readJson, writeJson, writePdf, readPdf, getPublicPdfUrl } from './lib/gcs.js';
+import {
+  DEFAULT_SITE_AUTH,
+  verifySitePassword,
+  validateNewPassword,
+  createSiteAuthRecord
+} from './lib/site-auth.js';
 
 const app = express();
 const upload = multer({
@@ -102,6 +108,43 @@ app.get('/pdf-url', (req, res) => {
   const path = req.query.path;
   if (!path || !path.startsWith('pdfs/')) return res.status(400).json({ error: 'Invalid path' });
   return res.json({ url: getPublicPdfUrl(path) });
+});
+
+async function readSiteAuthConfig() {
+  const stored = await readJson('site-auth.json');
+  if (stored?.username && stored?.hash && stored?.salt) return stored;
+  return { ...DEFAULT_SITE_AUTH };
+}
+
+app.get('/site-auth', async (_req, res) => {
+  try {
+    const auth = await readSiteAuthConfig();
+    res.set('Cache-Control', 'no-store, max-age=0');
+    return res.json(auth);
+  } catch (e) {
+    return res.status(500).json({ error: 'Auth config load failed', detail: e.message });
+  }
+});
+
+app.post('/site-auth', authMiddleware, async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body || {};
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ error: 'Bütün sahələri doldurun' });
+  }
+  const validationError = validateNewPassword(newPassword, confirmPassword);
+  if (validationError) return res.status(400).json({ error: validationError });
+
+  try {
+    const current = await readSiteAuthConfig();
+    if (!verifySitePassword(oldPassword, current)) {
+      return res.status(401).json({ error: 'Köhnə şifrə yanlışdır' });
+    }
+    const updated = createSiteAuthRecord(current.username, newPassword);
+    await writeJson('site-auth.json', updated);
+    return res.json({ ok: true, auth: updated });
+  } catch (e) {
+    return res.status(500).json({ error: 'Şifrə yenilənmədi', detail: e.message });
+  }
 });
 
 const port = process.env.PORT || 8080;

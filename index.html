@@ -9,9 +9,22 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=5">
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png?v=5">
   <link rel="stylesheet" href="styles.css">
+  <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="site-login" class="site-login">
+    <form id="site-login-form" class="site-login-card" autocomplete="off">
+      <h1>Zakher Travel</h1>
+      <p>Saytı görmək üçün daxil olun</p>
+      <label for="site-username">İstifadəçi adı</label>
+      <input type="text" id="site-username" required autocomplete="username">
+      <label for="site-password">Şifrə</label>
+      <input type="password" id="site-password" required autocomplete="current-password">
+      <button type="submit">Daxil ol</button>
+      <p id="site-login-error" class="site-login-error"></p>
+    </form>
+  </div>
+  <div id="app" hidden></div>
   <script src="js/config.js"></script>
   <script src="js/pdf-store.js"></script>
   <script src="js/pdf-preview.js"></script>

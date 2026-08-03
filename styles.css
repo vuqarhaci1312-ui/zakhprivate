@@ -298,6 +298,7 @@ body.edit-mode .add-pkg-btn { display: block; }
 
 .edit-modal-box input[type="text"],
 .edit-modal-box input[type="email"],
+.edit-modal-box input[type="password"],
 .edit-modal-box input[type="file"],
 .edit-modal-box select {
   width: 100%;
@@ -744,5 +745,84 @@ body.pdf-preview-open {
   text-align: center;
   color: #fff;
   font-size: 14px;
+}
+
+.site-login {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1d1d1f, #2c2c2e);
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+}
+
+.site-login-card {
+  background: #fff;
+  padding: 40px 36px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.site-login-card h1 {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.site-login-card > p {
+  text-align: center;
+  color: #6e6e73;
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.site-login-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.site-login-card input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #d2d2d7;
+  border-radius: 8px;
+  font-size: 15px;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.site-login-card input:focus {
+  border-color: #0066cc;
+}
+
+.site-login-card button {
+  width: 100%;
+  padding: 13px;
+  background: #0066cc;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.site-login-card button:hover {
+  background: #004499;
+}
+
+.site-login-error {
+  color: #ff3b30;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+  min-height: 18px;
 }
 
