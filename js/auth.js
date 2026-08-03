@@ -19,37 +19,41 @@ function getActiveAuth() {
 async function initSiteAuth(force = false) {
   if (siteAuthConfig && !force) return siteAuthConfig;
 
-  async function applyConfig(data) {
+  function applyConfig(data) {
     if (data?.username && data?.hash && data?.salt) {
       siteAuthConfig = {
         ...DEFAULT_AUTH,
         username: String(data.username).trim().toLowerCase(),
-        salt: data.salt,
-        hash: data.hash,
-        iterations: data.iterations || DEFAULT_AUTH.iterations
+        salt: String(data.salt),
+        hash: String(data.hash),
+        iterations: Number(data.iterations) || DEFAULT_AUTH.iterations
       };
       return siteAuthConfig;
     }
     return null;
   }
 
+  function fetchWithTimeout(url, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { cache: 'no-store', signal: ctrl.signal })
+      .finally(() => clearTimeout(timer));
+  }
+
   const localPath = window.location.pathname.includes('/admin') ? '../site-auth.json' : 'site-auth.json';
-  const sources = [
-    localPath,
-    '/api/site-auth',
-    apiBase() ? `${apiBase()}/site-auth` : null
-  ].filter(Boolean);
+  const sources = [localPath, '/api/site-auth'];
 
   for (const source of sources) {
     try {
-      const res = await fetch(source + (source.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+      const res = await fetchWithTimeout(source + '?t=' + Date.now(), 3000);
       if (!res.ok) continue;
-      const applied = await applyConfig(await res.json());
+      const json = await res.json();
+      const applied = applyConfig(json);
       if (applied) return applied;
     } catch {}
   }
 
-  siteAuthConfig = { ...DEFAULT_AUTH, username: DEFAULT_AUTH.username.toLowerCase() };
+  siteAuthConfig = { ...DEFAULT_AUTH };
   return siteAuthConfig;
 }
 

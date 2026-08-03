@@ -1,9 +1,9 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  await initSiteAuth();
+document.addEventListener('DOMContentLoaded', () => {
   const loginEl = document.getElementById('site-login');
   const appEl = document.getElementById('app');
   const form = document.getElementById('site-login-form');
   const errorEl = document.getElementById('site-login-error');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
   async function bootApp() {
     loginEl.hidden = true;
@@ -21,15 +21,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (isAuthenticated()) {
-    await bootApp();
+    bootApp();
     return;
   }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Gözləyin...';
     const username = document.getElementById('site-username').value.trim();
-    const password = document.getElementById('site-password').value.trim();
+    const password = document.getElementById('site-password').value;
     try {
       const result = await attemptLogin(username, password);
       if (result.ok) {
@@ -37,12 +39,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
       if (result.locked) {
-        errorEl.textContent = `Çox cəhd. ${result.remaining} saniyə gözləyin.`;
-        return;
+        errorEl.textContent = 'Çox cəhd. ' + result.remaining + ' saniyə gözləyin.';
+      } else {
+        errorEl.textContent = 'Yanlış giriş. ' + result.attemptsLeft + ' cəhd qaldı.';
       }
-      errorEl.textContent = `Yanlış giriş. ${result.attemptsLeft} cəhd qaldı.`;
     } catch (err) {
-      errorEl.textContent = err.message || 'Giriş xətası';
+      errorEl.textContent = err.message || 'Giriş xətası baş verdi';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Daxil ol';
     }
   });
 });
