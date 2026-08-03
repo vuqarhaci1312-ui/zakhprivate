@@ -154,19 +154,20 @@ function destroySession() {
 }
 
 async function attemptLogin(username, password) {
-  await initSiteAuth();
-  const auth = getActiveAuth();
+  let auth = getActiveAuth();
+  if (!siteAuthConfig) {
+    try { await initSiteAuth(); auth = getActiveAuth(); } catch {}
+  }
 
   if (isLocked()) {
     return { ok: false, locked: true, remaining: getLockRemaining() };
   }
 
-  await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
+  await new Promise(r => setTimeout(r, 200 + Math.random() * 100));
 
   const normalizedUser = String(username || '').trim().toLowerCase();
-  const normalizedPass = String(password || '').trim();
   const userOk = timingSafeEqual(normalizedUser, auth.username.trim().toLowerCase());
-  const passHash = await deriveHash(normalizedPass, auth);
+  const passHash = await deriveHash(password, auth);
   const passOk = timingSafeEqual(passHash, auth.hash);
 
   if (userOk && passOk) {
