@@ -184,7 +184,7 @@ function initPdfPreviewLinks() {
     const link = e.target.closest('a.pdf-link');
     if (!link || !link.href || link.href === '#' || link.href.endsWith('#')) return;
     e.preventDefault();
-    openPdfPreview(link.href, link.textContent.trim(), link.dataset.pdf);
+    window.open(link.href, '_blank', 'noopener');
   });
 }
 
